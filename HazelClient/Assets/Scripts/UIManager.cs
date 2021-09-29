@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityClient;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -28,6 +29,14 @@ public class UIManager : MonoBehaviour
     {
         startMenu.SetActive(false);
         usernameInputField.interactable = false;
-        Client.instance.ConnectToServer();
+        HazelNetworkManager.instance.ConnectToServer();
+    }
+
+    public void ConnectionLost()
+    {
+        //TODO recall the connect menu!
+        Debug.Log("booted/connection lost :(");
+        startMenu.SetActive(true);
+        usernameInputField.interactable = true;
     }
 }

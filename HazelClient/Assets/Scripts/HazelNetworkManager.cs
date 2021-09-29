@@ -25,12 +25,14 @@ namespace UnityClient
 
     // Usually this kind of class should be a singleton, but everyone has 
     // their own way of doing that. So I leave it up to you.
-    internal class HazelNetworkManager
+    internal class HazelNetworkManager : MonoBehaviour
     {
+        public static HazelNetworkManager instance;
+        
         private const int _serverPort = 30003;
         //TODO we can optimize by removing this, as we only have one "game" running at a time
         private const int _gameId = 333;
-
+        
         // Unity gets very grumpy if you start messing with GameObjects on threads
         // other than the main one. So while sending/receiving messages can be multithreaded,
         // we need a queue to hold events until a Update/FixedUpdate method can handle them.
@@ -47,11 +49,30 @@ namespace UnityClient
 
         private float timer = 0;
 
+        private void Awake()
+        {
+            if (instance == null)
+            {
+                instance = this;
+            }
+            else if (instance != null)
+            {
+                Debug.Log("[TODO] why would you ever get here?  eliminate this");
+                Destroy(this);
+            }
+        }
+
         public void Update()
         {
+            //if update is called before connecting, _streams will be null
+            if (_streams == null)
+            {
+                return;
+            }
+            
             lock (eventQueue)
             {
-                foreach (var evt in this.eventQueue)
+                foreach (var evt in eventQueue)
                 {
                     evt();
                 }
@@ -60,7 +81,7 @@ namespace UnityClient
             }
 
             timer += Time.fixedDeltaTime;
-            if (timer < this.minSendInterval)
+            if (timer < minSendInterval)
             {
                 // Unless you are making a highly competitive action game, you don't need updates
                 // every frame. And many network connections cannot handle that kind of traffic.
@@ -120,7 +141,7 @@ namespace UnityClient
             if (_streams == null)
             {
                 _streams = new MessageWriter[2];
-                for (int i = 0; i < this._streams.Length; ++i)
+                for (int i = 0; i < _streams.Length; ++i)
                 {
                     _streams[i] = MessageWriter.Get((SendOption)i);
                 }
@@ -129,7 +150,7 @@ namespace UnityClient
             // Clear any existing data, and prep them for batching
             for (int i = 0; i < _streams.Length; ++i)
             {
-                var stream = this._streams[i];
+                var stream = _streams[i];
                 stream.Clear((SendOption)i);
                 stream.StartMessage((byte)PlayerMessageTags.GameData);
                 stream.Write(_gameId);
@@ -157,7 +178,11 @@ namespace UnityClient
             {
                 eventQueue.Clear();
                 // Maybe something like:
-                // this.EventQueue.Add(ChangeToMainMenuSceneWithError(e.Reason));
+                // EventQueue.Add(ChangeToMainMenuSceneWithError(e.Reason));
+
+                //TODO handle server disconnections
+                Console.WriteLine($"[TODO] handle server disconnections");
+                UIManager.instance.ConnectionLost();
             }
         }
         
@@ -214,6 +239,11 @@ namespace UnityClient
         {
             // A version code. Could be anything though.
             return new byte[] { 1, 0, 0, 0 };
+        }
+
+        public void ConnectToServer()
+        {
+            StartCoroutine(CoConnect());
         }
     }
 }
