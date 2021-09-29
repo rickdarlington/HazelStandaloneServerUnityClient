@@ -31,7 +31,6 @@ public class Client : MonoBehaviour
 
     public void ConnectToServer()
     {
-        Debug.Log("[REMOVE] calling CoConnect");
         var coConnect = networkManager.CoConnect();
         StartCoroutine(coConnect);
     }

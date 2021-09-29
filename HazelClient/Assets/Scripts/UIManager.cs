@@ -26,7 +26,6 @@ public class UIManager : MonoBehaviour
 
     public void ConnectClicked()
     {
-        Debug.Log("Client clicked connect");
         startMenu.SetActive(false);
         usernameInputField.interactable = false;
         Client.instance.ConnectToServer();

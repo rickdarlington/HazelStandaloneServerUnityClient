@@ -1,31 +1,31 @@
-﻿using Hazel;
+﻿using System;
+using Hazel;
 using System.Threading;
 
 namespace HazelServer
 {
     internal class Player
     {
-        private const int InvalidGameId = -1;
+        public readonly int id; 
+        public readonly Connection connection;
+        
+        private static int _playerCounter = 0;
+        private readonly ServerProgram _server;
 
-        private static int PlayerCounter = 0;
-
-        public readonly int Id;
-        public readonly int ClientVersion;
-        public readonly Connection Connection;
-
-        private readonly ServerProgram gameManager;
-
-        private int currentGame = InvalidGameId;
-
-        public Player(ServerProgram server, int clientVersion)
+        private String _name;
+        
+        public Player(ServerProgram server, Connection c, String name)
         {
-            this.gameManager = server;
-            this.ClientVersion = clientVersion;
-            this.Id = Interlocked.Increment(ref PlayerCounter);
+            //TODO should server just be a singleton get from Program.cs?
+            _server = server;
+            _name = name;
+            connection = c;
+            id = Interlocked.Increment(ref _playerCounter);
         }
 
         public void HandleMessage(DataReceivedEventArgs obj)
         {
+            Console.WriteLine("new message");
             try
             {
                 // This pattern allows us to pack and handle multiple messages
@@ -35,96 +35,57 @@ namespace HazelServer
                     // Okay, I lied. You won't need to recycle any message from ReadMessage!
                     // They share the internal MessageReader.Buffer with the parent, so there's no new buffer to pool!
                     var msg = obj.Message.ReadMessage();
-                    switch ((PlayerMessageTags)msg.Tag)
+                    var tag = (PlayerMessageTags)msg.Tag;
+                    
+                    Console.WriteLine(tag.ToString());
+                    
+                    switch (tag)
                     {
-                        // No expected data, returns positive 4-byte game id or negative error code
-                        case PlayerMessageTags.CreateGame:
-                            {
-                                var message = MessageWriter.Get(SendOption.Reliable);
-                                message.StartMessage((byte)PlayerMessageTags.CreateGame);
-
-                                // Locking to protect the checking and potential assignment of this.CurrentGame
-                                // There are ways of doing this with less locking, but given that the client app
-                                // Shouldn't allow the spamming of this tag, it shouldn't create much contention.
-                                lock (this)
-                                {
-                                    if (this.currentGame != InvalidGameId)
-                                    {
-                                        message.Write((int)ErrorCodes.AlreadyInGame);
-                                    }
-                                    else
-                                    {
-                                        GameData game = new GameData();
-                                        this.currentGame = game.Id;
-                                        game.AddPlayer(this);
-                                        message.Write(game.Id);
-
-                                        gameManager.AddGame(game);
-                                    }
-                                }
-
-                                message.EndMessage();
-
-                                try
-                                {
-                                    obj.Sender.Send(message);
-                                }
-                                catch { }
-
-                                // You don't always have to recycle in a finally, just be *very* sure you are recycling
-                                message.Recycle();
-                            }
-                            break;
-
-                        // Expected format: 4-byte game id, returns the same game id or a negative error
                         case PlayerMessageTags.JoinGame:
+                            var message = MessageWriter.Get(SendOption.Reliable);
+                            message.StartMessage((byte)PlayerMessageTags.JoinGame);
+
+                            lock (this)
                             {
-                                var message = MessageWriter.Get(SendOption.Reliable);
-                                message.StartMessage((byte)PlayerMessageTags.JoinGame);
-
-                                lock (this)
-                                {
-                                    if (this.currentGame != InvalidGameId)
-                                    {
-                                        message.Write((int)ErrorCodes.AlreadyInGame);
-                                    }
-                                    else
-                                    {
-                                        var gameId = msg.ReadInt32();
-                                        if (this.gameManager.TryGetGame(gameId, out var game))
-                                        {
-                                            this.currentGame = gameId;
-                                            game.AddPlayer(this);
-                                            message.Write(gameId);
-                                        }
-                                        else
-                                        {
-                                            message.Write((int)ErrorCodes.GameNotFound);
-                                        }
-                                    }
-                                }
-
-                                message.EndMessage();
-                                try
-                                {
-                                    obj.Sender.Send(message);
-                                }
-                                catch { }
-
-                                message.Recycle();
+                                _server.game.AddPlayer(this);
+                                //TODO write message with this player's id
+                                message.Write(id);
                             }
+
+                            message.EndMessage();
+                            try
+                            {
+                                obj.Sender.Send(message);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine($"[EXCEPTION] {e.Message}");
+                                Console.WriteLine($"Error sending player join message to player with id: {this.id}");
+                            }
+
+                            message.Recycle();
                             break;
                     }
                 }
             }
             catch
             {
-                // Usually some error logging and/or handling here.
+                Console.WriteLine("Error in Player.HandleMessage");
             }
             finally
             {
                 obj.Message.Recycle();
             }
+        }
+        
+        public void HandleDisconnect(object sender, DisconnectedEventArgs e)
+        {
+            Console.WriteLine($"[DEBUG] Disconnecting player id: {id}");
+            _server.game.removePlayer(this);
+            //TODO shoudn't we destroy the player 
+            // There's actually nothing to do in this simple case!
+            // If HandleDisconnect is called, then dispose is also guaranteed to be called.
+            // Feel free to log e.Reason, clean up anything associated with a player disconnecting, etc.
         }
     }
 }

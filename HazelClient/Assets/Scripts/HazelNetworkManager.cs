@@ -14,69 +14,66 @@ namespace UnityClient
     // They usually don't change enough for copy-paste to be a problem, though.
     internal enum PlayerMessageTags
     {
-        CreateGame,
-        JoinGame,
-        PlayerJoined,
-        PlayersInGame,
-        GameData
-    }
-
-    internal enum ErrorCodes
-    {
-        AlreadyInGame = -1,
-        GameNotFound = -2
+        JoinGame,       // 0
+        LeaveGame,      // 1
+        PlayerJoined,   // 2
+        PlayerLeft,     // 3
+        PlayersInGame,  // 4
+        ServerMessage,  // 5
+        GameData        // 6
     }
 
     // Usually this kind of class should be a singleton, but everyone has 
     // their own way of doing that. So I leave it up to you.
     internal class HazelNetworkManager
     {
-        private const int ServerPort = 30003;
+        private const int _serverPort = 30003;
+        //TODO we can optimize by removing this, as we only have one "game" running at a time
+        private const int _gameId = 333;
 
         // Unity gets very grumpy if you start messing with GameObjects on threads
         // other than the main one. So while sending/receiving messages can be multithreaded,
         // we need a queue to hold events until a Update/FixedUpdate method can handle them.
-        public List<Action> EventQueue = new List<Action>();
+        public List<Action> eventQueue = new List<Action>();
 
         // How many seconds between batched messages
-        public float MinSendInterval = .1f;
-
-        public int GameId = -1;
-
-        private UdpClientConnection connection;
+        public float minSendInterval = .1f;
+        
+        private UdpClientConnection _connection;
 
         // This will hold a reliable and an unreliable "channel", so you can batch 
         // messages to the server every MinSendInterval seconds.
-        private MessageWriter[] Streams;
+        private MessageWriter[] _streams;
 
         private float timer = 0;
 
         public void Update()
         {
-            lock (this.EventQueue)
+            lock (eventQueue)
             {
-                foreach (var evt in this.EventQueue)
+                foreach (var evt in this.eventQueue)
                 {
                     evt();
                 }
 
-                this.EventQueue.Clear();
+                eventQueue.Clear();
             }
 
-            this.timer += Time.fixedDeltaTime;
-            if (this.timer < this.MinSendInterval)
+            timer += Time.fixedDeltaTime;
+            if (timer < this.minSendInterval)
             {
                 // Unless you are making a highly competitive action game, you don't need updates
                 // every frame. And many network connections cannot handle that kind of traffic.
                 return;
             }
 
-            this.timer = 0;
+            timer = 0;
 
-            foreach (var msg in this.Streams)
+            foreach (var msg in _streams)
             {
                 try
                 {
+                    //TODO we can remove GameId here, as we only have one game running at a time
                     // TODO: In hazel, I need to change this so it makes sense
                     // Right now:
                     // 7 = Tag (1) + MessageLength (2) + GameId (4)
@@ -84,81 +81,70 @@ namespace UnityClient
                     if (!msg.HasBytes(7)) continue;
                     msg.EndMessage();
 
-                    this.connection.Send(msg);
+                    _connection.Send(msg);
                 }
                 catch 
                 {
+                    Debug.Log("[TODO] handle this catch in Update()");
                     // Logging, probably
                 }
 
                 msg.Clear(msg.SendOption);
                 msg.StartMessage((byte)PlayerMessageTags.GameData);
-                msg.Write(this.GameId);
+                msg.Write(_gameId);
             }
-        }
-
-        // The UI should probably not allow this again until a response has been received or you disconnect
-        public void CreateGame(int gameId)
-        {
-            if (this.connection == null) return;
-
-            var msg = MessageWriter.Get(SendOption.Reliable);
-            msg.StartMessage((byte)PlayerMessageTags.CreateGame);
-            msg.EndMessage();
-
-            try { this.connection.Send(msg); } catch { }
-            msg.Recycle();
         }
 
         public void JoinGame(int gameId)
         {
-            if (this.connection == null) return;
+            if (_connection == null) return;
 
+            Console.WriteLine($"Connecting {_connection.EndPoint.Address}");
+            
             var msg = MessageWriter.Get(SendOption.Reliable);
             msg.StartMessage((byte)PlayerMessageTags.JoinGame);
             msg.Write(gameId);
             msg.EndMessage();
 
-            try { this.connection.Send(msg); } catch { }
+            try { _connection.Send(msg); } catch { Console.WriteLine($"Caught exception in JoinGame for connection {_connection.EndPoint.Address}"); }
             msg.Recycle();
         }
 
         //this is a coroutine, hence the "Co in CoConnect"
         public IEnumerator CoConnect()
         {
-            Debug.Log("[REMOVE] in CoConnect");
             // Don't leak connections!
-            if (this.connection != null) yield break;
+            if (_connection != null) yield break;
 
             // Initialize streams (once)
-            if (this.Streams == null)
+            if (_streams == null)
             {
-                this.Streams = new MessageWriter[2];
-                for (int i = 0; i < this.Streams.Length; ++i)
+                _streams = new MessageWriter[2];
+                for (int i = 0; i < this._streams.Length; ++i)
                 {
-                    this.Streams[i] = MessageWriter.Get((SendOption)i);
+                    _streams[i] = MessageWriter.Get((SendOption)i);
                 }
             }
 
             // Clear any existing data, and prep them for batching
-            for (int i = 0; i < this.Streams.Length; ++i)
+            for (int i = 0; i < _streams.Length; ++i)
             {
-                var stream = this.Streams[i];
+                var stream = this._streams[i];
                 stream.Clear((SendOption)i);
                 stream.StartMessage((byte)PlayerMessageTags.GameData);
-                stream.Write(this.GameId);
+                stream.Write(_gameId);
             }
 
             //TODO update to not force loopback connection
-            this.connection = new UdpClientConnection(new IPEndPoint(IPAddress.Loopback, ServerPort));
-            this.connection.DataReceived += HandleMessage;
-            this.connection.Disconnected += HandleDisconnect;
+            _connection = new UdpClientConnection(new IPEndPoint(IPAddress.Loopback, _serverPort));
+            _connection.DataReceived += HandleMessage;
+            _connection.Disconnected += HandleDisconnect;
 
             // If you block in a Unity Coroutine, it'll hang the game!
-            this.connection.ConnectAsync(GetConnectionData());
+            _connection.ConnectAsync(GetConnectionData());
 
             //TODO implement a connection timeout
-            while (this.connection != null && this.connection.State != ConnectionState.Connected)
+            while (_connection != null && _connection.State != ConnectionState.Connected)
             {
                 yield return null;
             }
@@ -167,28 +153,14 @@ namespace UnityClient
         // Remember this is on a new thread.
         private void HandleDisconnect(object sender, DisconnectedEventArgs e)
         {
-            lock (this.EventQueue)
+            lock (eventQueue)
             {
-                this.EventQueue.Clear();
+                eventQueue.Clear();
                 // Maybe something like:
                 // this.EventQueue.Add(ChangeToMainMenuSceneWithError(e.Reason));
             }
         }
-
-        // I usually like to make event callbacks like this abstract, then create a 
-        // game-specific subclass to implement them. This separates some of the game 
-        // logic from the network logic.
-        private void HandleError(ErrorCodes errorCode)
-        {
-            // Maybe something like:
-            // ErrorPopup.Instance.ShowError(errorCode);
-        }
-
-        private void HandleJoinGame()
-        {
-
-        }
-
+        
         private void HandleMessage(DataReceivedEventArgs obj)
         {
             try
@@ -198,70 +170,44 @@ namespace UnityClient
                     // Remember from the server code that sub-messages aren't pooled,
                     // they share the parent message's buffer. So don't recycle them!
                     var msg = obj.Message.ReadMessage();
-                    Debug.Log($"[{msg.Tag}]");
                     switch ((PlayerMessageTags)msg.Tag)
                     {
                         case PlayerMessageTags.JoinGame:
-                        case PlayerMessageTags.CreateGame:
                             HandleJoinGameResponse(msg);
+                            break; 
+                        case PlayerMessageTags.ServerMessage:
+                            HandleServerMessage(msg);
                             break;
-
-                        // Not implemented:
-                        case PlayerMessageTags.PlayerJoined:
-                            // Display that someone joined!
-                        case PlayerMessageTags.PlayersInGame:
-                            // Display who is already here!
-                        case PlayerMessageTags.GameData:
-                            // Handle that data!
+                        
+                        //TODO implement the rest eg:
+                        //case PlayerMessageTags.PlayerJoined:
+                        //case PlayerMessageTags.GameData (etc)
+                        
+                        default:
+                            Debug.Log($"[DEBUG] unhandled message type [{msg.Tag}]");
                             break;
                     }
                 }
             }
             catch
             {
-                // Error logging
+                Debug.Log("[TODO] handle errors in HandleMessage()"); // Error logging
             }
             finally
             {
-
+                //TODO do we need cleanup here?
             }
         }
 
-        // Turns out in this simple example, both creating a game and joining a game have the same
-        // reaction from the server. Usually the creator of the game might have more reponsibilities like
-        // spawning objects, but in this case, I leave it to your imagination!
         private void HandleJoinGameResponse(MessageReader msg)
         {
-            int idOrError = msg.ReadInt32();
-            if (idOrError < 0)
-            {
-                lock (this.EventQueue)
-                {
-                    this.EventQueue.Add(() => HandleError((ErrorCodes)idOrError));
-                }
-            }
-            else
-            {
-                // So bad. Use a better locking pattern to protect this.GameId.
-                lock (this)
-                {
-                    if (this.GameId == -1)
-                    {
-                        this.GameId = idOrError;
-                        lock (this.EventQueue)
-                        {
-                            this.EventQueue.Add(() => HandleJoinGame());
-                        }
-                    }
-                    else
-                    {
-                        // This is a pretty bad state. The client might be in two games? Or it just thinks it is...
-                        // I would disconnect fully, reset the scene, and let everyone clean up.
-                        // Probably want to enqueue something to alert the player as well.
-                        // Ideally this state never ever happens though.
-                    }
-                }
-            }
+            int myId = msg.ReadInt32();
+            Debug.Log($"[info] joined game as player id: {myId}");
+        }
+
+        private void HandleServerMessage(MessageReader msg)
+        {
+            Debug.Log($"Received Server Message: {msg.ReadString()}");
         }
 
         private static byte[] GetConnectionData()

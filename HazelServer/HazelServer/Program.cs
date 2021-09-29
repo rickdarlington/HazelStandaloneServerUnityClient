@@ -2,6 +2,7 @@
 using Hazel.Udp;
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using System.Threading;
 
@@ -9,30 +10,23 @@ namespace HazelServer
 {
     internal enum PlayerMessageTags
     {
-        CreateGame,
         JoinGame,
+        LeaveGame,
         PlayerJoined,
+        PlayerLeft,
         PlayersInGame,
-
-        // Possible other tags (out of scope)
-        GameData, // - I'm including this one to show to a client might want consistent updates
-
-        // List games - Pretty straightforward
-        // Leave game - Be sure to clean up the game, migrate host, etc.
-    }
-
-    internal enum ErrorCodes
-    {
-        AlreadyInGame = -1,
-        GameNotFound = -2
+        ServerMessage,
+        GameData
     }
 
     internal class ServerProgram
     {
         private const int ServerPort = 30003;
-        private ConcurrentDictionary<int, GameData> AllGames = new ConcurrentDictionary<int, GameData>();
 
-        private bool amService;
+        private bool _amService;
+        public GameData game { get; private set; }
+
+        private UdpConnectionListener _udpServerRef;
 
         private static void Main(string[] args)
         {
@@ -45,30 +39,24 @@ namespace HazelServer
 
         public ServerProgram(bool amService)
         {
-            this.amService = amService;
+            _amService = amService;
         }
-
-        public void AddGame(GameData game)
-        {
-            // Usually do this with error checking, but simplified for example
-            this.AllGames.TryAdd(game.Id, game);
-        }
-
-        public bool TryGetGame(int gameId, out GameData game)
-        {
-            return this.AllGames.TryGetValue(gameId, out game);
-        }
-
+        
         private void Run()
         {
+            game = new GameData();
+            
             using (var udpServer = new UdpConnectionListener(new IPEndPoint(IPAddress.Any, ServerPort), IPMode.IPv4))
             {
+                _udpServerRef = udpServer;
                 udpServer.NewConnection += HandleNewConnection;
                 udpServer.Start();
 
-                while (true)
+                var running = true;
+                Console.WriteLine("Starting Server.  :q to exit");
+                while (running)
                 {
-                    if (amService)
+                    if (_amService)
                     {
                         // When running as a service, the main thread really doesn't need to do anything
                         // But it can be really useful to poll for configuration changes or log periodic statistics
@@ -84,45 +72,78 @@ namespace HazelServer
                     }
                     else
                     {
-                        Console.WriteLine("Press any key to exit");
-                        Console.ReadKey(true);
-                        break;
+                        var input = Console.ReadLine();
+                        if (input.Equals(":q"))
+                        {
+                            Console.WriteLine("goodbye for now...");
+                            return;
+                        }
+
+                        ServerCommand(input);
                     }
                 }
+            }
+        }
+
+        private void ServerCommand(String input)
+        {
+            switch (input)
+            {
+                case "bc":
+                case "broadcast":
+                    var msg = MessageWriter.Get(SendOption.Reliable);
+                    msg.StartMessage((byte)PlayerMessageTags.ServerMessage);
+                    msg.Write("hi");
+                    msg.EndMessage();
+                    game.Broadcast(msg);
+                    Console.WriteLine($"> broadcast sent");
+                    break;
+                case "pc":
+                case "player count":
+                    Console.WriteLine($"> Players online: {game.PlayerCount()}");
+                    break;
+                case "sc":
+                case "show connections":
+                    Console.WriteLine($"> udp connections: " + _udpServerRef.ConnectionCount);
+                    break;
+                default: 
+                    Console.WriteLine($"> input error");
+                    break;
             }
         }
 
         // From here down, you must be thread-safe!
         private void HandleNewConnection(NewConnectionEventArgs obj)
         {
-            Console.WriteLine("new connection");
+            Console.WriteLine($"[DEBUG] new connection from {obj.Connection.EndPoint.Address}");
             try
             {
                 if (obj.HandshakeData.Length <= 0)
                 {
                     // If the handshake is invalid, let's disconnect them!
+                    Console.WriteLine($"[ERROR] disconnecting {obj.Connection.EndPoint.Address} due to bad handshake.");
                     return;
                 }
 
                 // Make sure this client version is compatible with this server and/or other clients!
                 var clientVersion = obj.HandshakeData.ReadInt32();
+                Console.WriteLine($"[DEBUG] connect from clientVersion {clientVersion}");
+
+                //TODO update to pass name in handshake data
+                //var playerName = obj.HandshakeData.ReadString();
+
+                var player = new Player(this, obj.Connection, "test");
+                game.AddPlayer(player);
                 
-                var player = new Player(this, clientVersion);
+                //TODO is this even working?  HandleDisconnect never gets invoked
                 obj.Connection.DataReceived += player.HandleMessage;
-                obj.Connection.Disconnected += HandleDisconnect;
+                obj.Connection.Disconnected += player.HandleDisconnect;
             }
             finally
             {
                 // Always recycle messages!
                 obj.HandshakeData.Recycle();
             }
-        }
-
-        private void HandleDisconnect(object sender, DisconnectedEventArgs e)
-        {
-            // There's actually nothing to do in this simple case!
-            // If HandleDisconnect is called, then dispose is also guaranteed to be called.
-            // Feel free to log e.Reason, clean up anything associated with a player disconnecting, etc.
         }
     }
 }
