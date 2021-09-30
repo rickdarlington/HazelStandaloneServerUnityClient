@@ -54,7 +54,7 @@ namespace HazelServer
                 udpServer.Start();
 
                 var running = true;
-                Console.WriteLine("Starting Server.  :q to exit");
+                Console.WriteLine($"{DateTime.UtcNow} [START] Starting Server, :q to exit");
                 while (running)
                 {
                     if (_amService)
@@ -68,15 +68,15 @@ namespace HazelServer
                         // If you try to recycle a pooled object twice, the pool will throw. (Which sucks, but tends to be very easy to debug.)
                         // If you pool something that didn't come from the pool, the pool will throw.
                         // I may make the exceptions only happen in debug builds someday since they do have perf cost. (Very, very small)
-                        Console.WriteLine($"Readers: {MessageReader.ReaderPool.NumberInUse}/{MessageReader.ReaderPool.NumberCreated}/{MessageReader.ReaderPool.Size}");
-                        Console.WriteLine($"Writers: {MessageWriter.WriterPool.NumberInUse}/{MessageWriter.WriterPool.NumberCreated}/{MessageWriter.WriterPool.Size}");
+                        Console.WriteLine($"${DateTime.UtcNow} Readers: {MessageReader.ReaderPool.NumberInUse}/{MessageReader.ReaderPool.NumberCreated}/{MessageReader.ReaderPool.Size}");
+                        Console.WriteLine($"${DateTime.UtcNow} Writers: {MessageWriter.WriterPool.NumberInUse}/{MessageWriter.WriterPool.NumberCreated}/{MessageWriter.WriterPool.Size}");
                     }
                     else
                     {
                         var input = Console.ReadLine();
                         if (input.Equals(":q"))
                         {
-                            Console.WriteLine("> goodbye for now...");
+                            Console.WriteLine($"{DateTime.UtcNow} > goodbye for now...");
                             return;
                         }
 
@@ -116,19 +116,19 @@ namespace HazelServer
         // From here down, you must be thread-safe!
         private void HandleNewConnection(NewConnectionEventArgs obj)
         {
-            Console.WriteLine($"[DEBUG] new connection from {obj.Connection.EndPoint.Address}");
+            Console.WriteLine($"{DateTime.UtcNow} [DEBUG] new connection from {obj.Connection.EndPoint.Address}");
             try
             {
                 if (obj.HandshakeData.Length <= 0)
                 {
                     // If the handshake is invalid, let's disconnect them!
-                    Console.WriteLine($"[ERROR] disconnecting {obj.Connection.EndPoint.Address} due to bad handshake.");
+                    Console.WriteLine($"{DateTime.UtcNow} [ERROR] disconnecting {obj.Connection.EndPoint.Address} due to bad handshake.");
                     return;
                 }
 
                 // Make sure this client version is compatible with this server and/or other clients!
                 var clientVersion = obj.HandshakeData.ReadInt32();
-                Console.WriteLine($"[DEBUG] connect from clientVersion {clientVersion}");
+                Console.WriteLine($"{DateTime.UtcNow} [DEBUG] connect from clientVersion {clientVersion}");
 
                 //TODO update to pass name in handshake data
                 //var playerName = obj.HandshakeData.ReadString();

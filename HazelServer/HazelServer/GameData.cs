@@ -25,7 +25,7 @@ namespace HazelServer
                 _playerList.Add(newPlayer);
             }
             
-            Console.WriteLine($"[DEBUG] adding player with id: {newPlayer.id}");
+            Console.WriteLine($"{DateTime.UtcNow} [DEBUG] adding player with id: {newPlayer.id}");
             
             var msg = MessageWriter.Get(SendOption.Reliable);
             msg.StartMessage((byte)PlayerMessageTags.PlayerInit);
@@ -38,15 +38,15 @@ namespace HazelServer
             }
             catch (Exception e)
             {
-                Console.WriteLine($"[EXCEPTION] {e.Message}");
-                Console.WriteLine("[ERROR] error in GameData.AddPlayer()");
+                Console.WriteLine($"{DateTime.UtcNow} [EXCEPTION] {e.Message}");
+                Console.WriteLine($"{DateTime.UtcNow} [ERROR] error in GameData.AddPlayer()");
                 //TODO handle "can't send to player" case
             }
         }
 
         public void removePlayer(Player p)
         {
-            Console.WriteLine($"[DEBUG] player {p.id} removed");
+            Console.WriteLine($"{DateTime.UtcNow} [DEBUG] player {p.id} removed");
             lock (_playerList)
             {
                 _playerList.Remove(p);
@@ -67,7 +67,7 @@ namespace HazelServer
                     }
                     catch
                     {
-                        Console.WriteLine("[ERROR] error in GameData.Broadcast()");
+                        Console.WriteLine($"{DateTime.UtcNow} [ERROR] error in GameData.Broadcast()");
                         //TODO handle "can't send to player" case
                         // Maybe you want to disconnect the player if you can't send?
                     }

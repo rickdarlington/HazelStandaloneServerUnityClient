@@ -25,7 +25,7 @@ namespace HazelServer
 
         public void HandleMessage(DataReceivedEventArgs obj)
         {
-            Console.WriteLine("new message");
+            Console.WriteLine($"{DateTime.UtcNow} [TRACE] new message");
             try
             {
                 // This pattern allows us to pack and handle multiple messages
@@ -37,7 +37,7 @@ namespace HazelServer
                     var msg = obj.Message.ReadMessage();
                     var tag = (PlayerMessageTags)msg.Tag;
                     
-                    Console.WriteLine(tag.ToString());
+                    Console.WriteLine($"{DateTime.UtcNow} [TRACE] tag.ToString()");
                     
                     switch (tag)
                     {
@@ -58,8 +58,8 @@ namespace HazelServer
                             }
                             catch (Exception e)
                             {
-                                Console.WriteLine($"[EXCEPTION] {e.Message}");
-                                Console.WriteLine($"Error sending player join message to player with id: {this.id}");
+                                Console.WriteLine($"{DateTime.UtcNow} [EXCEPTION] {e.Message}");
+                                Console.WriteLine($"{DateTime.UtcNow} [EXCEPTION] Error sending player join message to player with id: {this.id}");
                             }
 
                             message.Recycle();
@@ -69,7 +69,7 @@ namespace HazelServer
             }
             catch
             {
-                Console.WriteLine("Error in Player.HandleMessage");
+                Console.WriteLine($"{DateTime.UtcNow} [ERROR] Error in Player.HandleMessage");
             }
             finally
             {
@@ -79,7 +79,7 @@ namespace HazelServer
         
         public void HandleDisconnect(object sender, DisconnectedEventArgs e)
         {
-            Console.WriteLine($"[DEBUG] Disconnecting player id: {id}");
+            Console.WriteLine($"{DateTime.UtcNow} [DEBUG] Disconnecting player id: {id}");
             _server.game.removePlayer(this);
             //TODO shoudn't we destroy the player 
             // There's actually nothing to do in this simple case!
