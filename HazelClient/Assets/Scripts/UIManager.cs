@@ -9,7 +9,7 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager instance;
 
-    public GameObject startMenu;
+    public GameObject menuCanvas;
     public InputField usernameInputField;
 
     public void Awake()
@@ -27,16 +27,16 @@ public class UIManager : MonoBehaviour
 
     public void ConnectClicked()
     {
-        startMenu.SetActive(false);
+        menuCanvas.SetActive(false);
         usernameInputField.interactable = false;
         HazelNetworkManager.instance.ConnectToServer();
     }
 
     public void ConnectionLost()
     {
-        //TODO recall the connect menu!
         Debug.Log("booted/connection lost :(");
-        startMenu.SetActive(true);
         usernameInputField.interactable = true;
+        //TODO why the hell doesn't this work (checking the box in the unity editor does...)
+        menuCanvas.SetActive(true);
     }
 }
