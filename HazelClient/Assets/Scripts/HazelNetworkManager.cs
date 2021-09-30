@@ -16,11 +16,12 @@ namespace UnityClient
     {
         JoinGame,       // 0
         LeaveGame,      // 1
-        PlayerJoined,   // 2
-        PlayerLeft,     // 3
-        PlayersInGame,  // 4
-        ServerMessage,  // 5
-        GameData        // 6
+        PlayerInit,     // 2
+        PlayerJoined,   // 3
+        PlayerLeft,     // 4
+        PlayersInGame,  // 5
+        ServerMessage,  // 6
+        GameData        // 7
     }
 
     // Usually this kind of class should be a singleton, but everyone has 
@@ -197,8 +198,8 @@ namespace UnityClient
                     var msg = obj.Message.ReadMessage();
                     switch ((PlayerMessageTags)msg.Tag)
                     {
-                        case PlayerMessageTags.JoinGame:
-                            HandleJoinGameResponse(msg);
+                        case PlayerMessageTags.PlayerInit:
+                            PlayerInit(msg);
                             break; 
                         case PlayerMessageTags.ServerMessage:
                             HandleServerMessage(msg);
@@ -224,10 +225,10 @@ namespace UnityClient
             }
         }
 
-        private void HandleJoinGameResponse(MessageReader msg)
+        private void PlayerInit(MessageReader msg)
         {
             int myId = msg.ReadInt32();
-            Debug.Log($"[info] joined game as player id: {myId}");
+            Debug.Log($"[INFO] joined game as player id: {myId}");
         }
 
         private void HandleServerMessage(MessageReader msg)

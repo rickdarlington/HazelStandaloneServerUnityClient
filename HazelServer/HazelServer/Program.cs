@@ -10,13 +10,14 @@ namespace HazelServer
 {
     internal enum PlayerMessageTags
     {
-        JoinGame,
-        LeaveGame,
-        PlayerJoined,
-        PlayerLeft,
-        PlayersInGame,
-        ServerMessage,
-        GameData
+        JoinGame,       // 0
+        LeaveGame,      // 1
+        PlayerInit,     // 2
+        PlayerJoined,   // 3
+        PlayerLeft,     // 4
+        PlayersInGame,  // 5
+        ServerMessage,  // 6
+        GameData        // 7
     }
 
     internal class ServerProgram
@@ -75,7 +76,7 @@ namespace HazelServer
                         var input = Console.ReadLine();
                         if (input.Equals(":q"))
                         {
-                            Console.WriteLine("goodbye for now...");
+                            Console.WriteLine("> goodbye for now...");
                             return;
                         }
 

@@ -48,7 +48,6 @@ namespace HazelServer
                             lock (this)
                             {
                                 _server.game.AddPlayer(this);
-                                //TODO write message with this player's id
                                 message.Write(id);
                             }
 

@@ -18,29 +18,20 @@ namespace HazelServer
             return _playerList.Count;
         }
         
-        // Let's tell the existing players about the new player
-        // And tell the new player about all the existing players
         public void AddPlayer(Player newPlayer)
         {
-            var msg = MessageWriter.Get(SendOption.Reliable);
-            msg.StartMessage((byte)PlayerMessageTags.PlayerJoined);
-            msg.WritePacked(newPlayer.id);
-            msg.EndMessage();
-            Broadcast(msg);
-
             lock (_playerList)
             {
-                msg.Clear(SendOption.Reliable);
-                msg.StartMessage((byte)PlayerMessageTags.PlayersInGame);
-                foreach (var player in _playerList)
-                {
-                    msg.WritePacked(player.id);
-                }
-                msg.EndMessage();
-
                 _playerList.Add(newPlayer);
             }
-
+            
+            Console.WriteLine($"[DEBUG] adding player with id: {newPlayer.id}");
+            
+            var msg = MessageWriter.Get(SendOption.Reliable);
+            msg.StartMessage((byte)PlayerMessageTags.PlayerInit);
+            msg.WritePacked(newPlayer.id);
+            msg.EndMessage();
+            
             try
             {
                 newPlayer.connection.Send(msg);
