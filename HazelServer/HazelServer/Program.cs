@@ -1,8 +1,6 @@
 ﻿using Hazel;
 using Hazel.Udp;
 using System;
-using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Net;
 using System.Threading;
 
@@ -20,12 +18,12 @@ namespace HazelServer
         GameData        // 7
     }
 
-    internal class ServerProgram
+    internal class Server
     {
         private const int ServerPort = 30003;
 
         private bool _amService;
-        public GameData game { get; private set; }
+        public GameData _game { get; private set; }
 
         private UdpConnectionListener _udpServerRef;
 
@@ -34,29 +32,34 @@ namespace HazelServer
             bool amService = false;
             if (args.Length > 0) bool.TryParse(args[0], out amService);
 
-            ServerProgram server = new ServerProgram(amService);
+            Server server = new Server(amService);
             server.Run();
         }
 
-        public ServerProgram(bool amService)
+        public Server(bool amService)
         {
             _amService = amService;
         }
         
         private void Run()
         {
-            game = new GameData();
+            _game = new GameData();
             
             using (var udpServer = new UdpConnectionListener(new IPEndPoint(IPAddress.Any, ServerPort), IPMode.IPv4))
             {
+                Console.WriteLine($"{DateTime.UtcNow} [START] Starting server");
+                
                 _udpServerRef = udpServer;
                 udpServer.NewConnection += HandleNewConnection;
                 udpServer.Start();
 
                 var running = true;
-                Console.WriteLine($"{DateTime.UtcNow} [START] Starting Server, :q to exit");
                 while (running)
                 {
+                    //spawn game logic thread
+                    Thread StateManagerThread = new Thread(StateUpdateThread);
+                    StateManagerThread.Start();
+                    
                     if (_amService)
                     {
                         // When running as a service, the main thread really doesn't need to do anything
@@ -73,6 +76,7 @@ namespace HazelServer
                     }
                     else
                     {
+                        //TODO Readline seems to have a bug (maybe ubuntu terminal specific) which causes 'backspace' key to break the terminal :(Console.Write(".");
                         var input = Console.ReadLine();
                         if (input.Equals(":q"))
                         {
@@ -96,12 +100,12 @@ namespace HazelServer
                     msg.StartMessage((byte)PlayerMessageTags.ServerMessage);
                     msg.Write("hi");
                     msg.EndMessage();
-                    game.Broadcast(msg);
+                    _game.Broadcast(msg);
                     Console.WriteLine($"> broadcast sent");
                     break;
                 case "pc":
                 case "player count":
-                    Console.WriteLine($"> Players online: {game.PlayerCount()}");
+                    Console.WriteLine($"> Players online: {_game.PlayerCount()}");
                     break;
                 case "sc":
                 case "show connections":
@@ -134,7 +138,7 @@ namespace HazelServer
                 //var playerName = obj.HandshakeData.ReadString();
 
                 var player = new Player(this, obj.Connection, "test");
-                game.AddPlayer(player);
+                _game.AddPlayer(player);
                 
                 //TODO is this even working?  HandleDisconnect never gets invoked
                 obj.Connection.DataReceived += player.HandleMessage;
@@ -144,6 +148,36 @@ namespace HazelServer
             {
                 // Always recycle messages!
                 obj.HandshakeData.Recycle();
+            }
+        }
+        
+        public void StateUpdateThread()
+        {
+            Console.WriteLine($"{DateTime.UtcNow} [START] Starting game update loop");
+            //update loop 
+            long tickRate = 100; //10 ticks per second
+            int dt = 0;
+            while (true)
+            {
+                long startTimeMS = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+
+                
+                
+                //UpdatePlayerPositions(_game);
+                //SendPlayerStateDataUpdates();
+                
+                long finishTimeMS = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+                long elapsedTimeMS = finishTimeMS - startTimeMS;
+                
+                if (elapsedTimeMS < tickRate)
+                {
+                    dt = (int)tickRate - (int)elapsedTimeMS;
+                    Thread.Sleep(dt);
+                }
+                else
+                {
+                    Console.WriteLine($"Position update took longer ({elapsedTimeMS}) than tick {tickRate}");
+                }
             }
         }
     }

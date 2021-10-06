@@ -10,11 +10,11 @@ namespace HazelServer
         public readonly Connection connection;
         
         private static int _playerCounter = 0;
-        private readonly ServerProgram _server;
+        private readonly Server _server;
 
         private String _name;
         
-        public Player(ServerProgram server, Connection c, String name)
+        public Player(Server server, Connection c, String name)
         {
             //TODO should server just be a singleton get from Program.cs?
             _server = server;
@@ -47,7 +47,7 @@ namespace HazelServer
 
                             lock (this)
                             {
-                                _server.game.AddPlayer(this);
+                                _server._game.AddPlayer(this);
                                 message.Write(id);
                             }
 
@@ -80,7 +80,7 @@ namespace HazelServer
         public void HandleDisconnect(object sender, DisconnectedEventArgs e)
         {
             Console.WriteLine($"{DateTime.UtcNow} [DEBUG] Disconnecting player id: {id}");
-            _server.game.removePlayer(this);
+            _server._game.removePlayer(this);
             //TODO shoudn't we destroy the player 
             // There's actually nothing to do in this simple case!
             // If HandleDisconnect is called, then dispose is also guaranteed to be called.

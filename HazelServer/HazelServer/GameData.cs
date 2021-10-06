@@ -53,8 +53,36 @@ namespace HazelServer
             }
         }
 
+        public void Send(MessageWriter msg, Player toPlayer)
+        {
+            toPlayer.connection.Send(msg);
+        }
+
+        public void SendPlayerPositionUpdate()
+        {
+            //TODO implement better locking
+            lock (_playerList)
+            {
+                foreach (var player in _playerList)
+                {
+                    try
+                    {
+                        player.
+                        player.connection.Send(msg);
+                    }
+                    catch
+                    {
+                        Console.WriteLine($"{DateTime.UtcNow} [ERROR] error in GameData.Broadcast()");
+                        //TODO handle "can't send to player" case
+                        // Maybe you want to disconnect the player if you can't send?
+                    }
+                }
+            }
+        }
+
         public void Broadcast(MessageWriter msg)
         {
+            //TODO implement better locking
             // It's possible to create this method entirely lock-free, but too tricky 
             // for this example! Even a ReaderWriterLockSlim would be an improvement.
             lock (_playerList)
