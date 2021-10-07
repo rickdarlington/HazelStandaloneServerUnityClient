@@ -84,7 +84,7 @@ namespace HazelServer
                 case "bc":
                 case "broadcast":
                     var msg = MessageWriter.Get(SendOption.Reliable);
-                    msg.StartMessage((byte)PlayerMessageTags.ServerMessage);
+                    msg.StartMessage((byte)MessageTags.ServerMessage);
                     msg.Write("hi");
                     msg.EndMessage();
                     Game.Instance.Broadcast(msg);
@@ -98,7 +98,9 @@ namespace HazelServer
                 case "show connections":
                     Console.WriteLine($"> udp connections: " + UdpServerInstance.ConnectionCount);
                     break;
-                case "rw":
+                case "rw": 
+                case "readers": 
+                case "writers":
                     Console.WriteLine($"> Readers: {MessageReader.ReaderPool.NumberInUse}/{MessageReader.ReaderPool.NumberCreated}/{MessageReader.ReaderPool.Size}");
                     Console.WriteLine($"> Writers: {MessageWriter.WriterPool.NumberInUse}/{MessageWriter.WriterPool.NumberCreated}/{MessageWriter.WriterPool.Size}");
                     break;
@@ -123,12 +125,9 @@ namespace HazelServer
 
                 // Make sure this client version is compatible with this server and/or other clients!
                 var clientVersion = obj.HandshakeData.ReadInt32();
-                Console.WriteLine($"{DateTime.UtcNow} [DEBUG] connect from clientVersion {clientVersion}");
+                Console.WriteLine($"{DateTime.UtcNow} [DEBUG] {obj.Connection.EndPoint.Address} is connecting with clientVersion {clientVersion}");
 
-                //TODO update to pass name in handshake data
-                //var playerName = obj.HandshakeData.ReadString();
-
-                var player = new Player(this, obj.Connection, "test");
+                var player = new Player(obj.Connection);
                 Game.Instance.AddPlayer(player);
                 
                 obj.Connection.DataReceived += player.HandleMessage;

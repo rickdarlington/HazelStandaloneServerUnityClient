@@ -45,7 +45,7 @@ namespace HazelServer
             Console.WriteLine($"{DateTime.UtcNow} [DEBUG] adding player with id: {newPlayer.id}");
             
             var msg = MessageWriter.Get(SendOption.Reliable);
-            msg.StartMessage((byte)PlayerMessageTags.PlayerInit);
+            msg.StartMessage((byte)MessageTags.ServerInit);
             msg.WritePacked(newPlayer.id);
             msg.EndMessage();
             
@@ -70,13 +70,6 @@ namespace HazelServer
             {
                 _playerList.Remove(p);
             }
-        }
-
-        public void Send(MessageWriter msg, Player toPlayer)
-        {
-            //TODO try/catch
-            toPlayer.connection.Send(msg);
-            msg.Recycle();
         }
 
         public void ProcessPlayerInputs()
@@ -111,9 +104,9 @@ namespace HazelServer
                     try
                     {
                         //these should be sent all together as gamedata?
-                        msg.StartMessage((byte)PlayerMessageTags.GameData);
+                        //msg.StartMessage((byte)MessageTags.GameData);
                         //msg.Write();
-                        player.connection.Send(msg);
+                        //player.connection.Send(msg);
                     }
                     catch
                     {

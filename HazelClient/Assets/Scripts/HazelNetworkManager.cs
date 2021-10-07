@@ -12,16 +12,14 @@ namespace UnityClient
 {
     // Maybe you want to use another lib to keep this in sync?
     // They usually don't change enough for copy-paste to be a problem, though.
-    internal enum PlayerMessageTags
+    internal enum MessageTags
     {
-        JoinGame,       // 0
-        LeaveGame,      // 1
-        PlayerInit,     // 2
-        PlayerJoined,   // 3
-        PlayerLeft,     // 4
-        PlayersInGame,  // 5
-        ServerMessage,  // 6
-        GameData        // 7
+        ServerInit,     // 0
+        LogIn,          // 1
+        LoginSuccess,   // 2
+        LoginFailed,    // 3
+        ServerMessage,  // 4 
+        GameData
     }
 
     // Usually this kind of class should be a singleton, but everyone has 
@@ -49,6 +47,10 @@ namespace UnityClient
         private MessageWriter[] _streams;
 
         private float timer = 0;
+
+        private bool _loggedIn = false;
+
+        private string _playerName = "nobody";
 
         private void Awake()
         {
@@ -96,7 +98,6 @@ namespace UnityClient
                 try
                 {
                     //TODO we can remove GameId here, as we only have one game running at a time
-                    // TODO: In hazel, I need to change this so it makes sense
                     // Right now:
                     // 7 = Tag (1) + MessageLength (2) + GameId (4)
                     // Ideally, no magic calculation, just msg.HasMessages
@@ -112,24 +113,9 @@ namespace UnityClient
                 }
 
                 msg.Clear(msg.SendOption);
-                msg.StartMessage((byte)PlayerMessageTags.GameData);
+                msg.StartMessage((byte)MessageTags.GameData);
                 msg.Write(_gameId);
             }
-        }
-
-        public void JoinGame(int gameId)
-        {
-            if (_connection == null) return;
-
-            Console.WriteLine($"Connecting {_connection.EndPoint.Address}");
-            
-            var msg = MessageWriter.Get(SendOption.Reliable);
-            msg.StartMessage((byte)PlayerMessageTags.JoinGame);
-            msg.Write(gameId);
-            msg.EndMessage();
-
-            try { _connection.Send(msg); } catch { Console.WriteLine($"Caught exception in JoinGame for connection {_connection.EndPoint.Address}"); }
-            msg.Recycle();
         }
 
         //this is a coroutine, hence the "Co in CoConnect"
@@ -153,7 +139,7 @@ namespace UnityClient
             {
                 var stream = _streams[i];
                 stream.Clear((SendOption)i);
-                stream.StartMessage((byte)PlayerMessageTags.GameData);
+                stream.StartMessage((byte)MessageTags.GameData);
                 stream.Write(_gameId);
             }
 
@@ -161,6 +147,8 @@ namespace UnityClient
             _connection = new UdpClientConnection(new IPEndPoint(IPAddress.Loopback, _serverPort));
             _connection.DataReceived += HandleMessage;
             _connection.Disconnected += HandleDisconnect;
+            
+            Debug.Log("[DEBUG] client connection configured, calling connect.");
 
             // If you block in a Unity Coroutine, it'll hang the game!
             _connection.ConnectAsync(GetConnectionData());
@@ -175,6 +163,7 @@ namespace UnityClient
         // Remember this is on a new thread.
         private void HandleDisconnect(object sender, DisconnectedEventArgs e)
         {
+            Debug.Log($"[INFO] server disconnected");
             lock (eventQueue)
             {
                 eventQueue.Clear();
@@ -182,7 +171,7 @@ namespace UnityClient
                 // EventQueue.Add(ChangeToMainMenuSceneWithError(e.Reason));
 
                 //TODO handle server disconnections
-                Console.WriteLine($"[TODO] handle server disconnections");
+                Debug.Log($"[TODO] handle server disconnections");
                 UIManager.instance.ConnectionLost();
             }
         }
@@ -196,12 +185,21 @@ namespace UnityClient
                     // Remember from the server code that sub-messages aren't pooled,
                     // they share the parent message's buffer. So don't recycle them!
                     var msg = obj.Message.ReadMessage();
-                    switch ((PlayerMessageTags)msg.Tag)
+                    
+                    Debug.Log($"[TRACE] message type [{(MessageTags)msg.Tag}]");
+                    switch ((MessageTags)msg.Tag)
                     {
-                        case PlayerMessageTags.PlayerInit:
-                            PlayerInit(msg);
+                        case MessageTags.ServerInit:
+                            ServerInitResponse(msg);
                             break; 
-                        case PlayerMessageTags.ServerMessage:
+                        case MessageTags.LoginFailed:
+                            //TODO handle login failure
+                            Debug.Log($"[NOT IMPLEMENTED] message type: MessageTags.LoginFailed]");
+                            break;
+                        case MessageTags.LoginSuccess:
+                            ServerLoginResponse(msg);
+                            break;
+                        case MessageTags.ServerMessage:
                             HandleServerMessage(msg);
                             break;
                         
@@ -225,10 +223,27 @@ namespace UnityClient
             }
         }
 
-        private void PlayerInit(MessageReader msg)
+        private void ServerInitResponse(MessageReader reader)
         {
-            int myId = msg.ReadInt32();
-            Debug.Log($"[INFO] joined game as player id: {myId}");
+            int myId = reader.ReadInt32();
+            Debug.Log($"[INFO] connected to server with player id: {myId}");
+
+            //TODO this is where you want to send your login information
+            //TODO get player name from input field
+            Debug.Log($"[DEBUG] sending log in message for {_playerName}");
+            var msg = MessageWriter.Get(SendOption.Reliable);
+            msg.StartMessage((byte)MessageTags.LogIn);
+            msg.Write(_playerName);
+            msg.EndMessage();
+
+            try { _connection.Send(msg); } catch { Debug.Log($"Caught exception in LogIn for connection {_connection.EndPoint.Address}"); }
+            msg.Recycle();
+        }
+
+        private void ServerLoginResponse(MessageReader msg)
+        {
+            Debug.Log($"Login success");
+            _loggedIn = true;
         }
 
         private void HandleServerMessage(MessageReader msg)
@@ -242,8 +257,9 @@ namespace UnityClient
             return new byte[] { 1, 0, 0, 0 };
         }
 
-        public void ConnectToServer()
+        public void ConnectToServer(string playerName)
         {
+            _playerName = playerName;
             StartCoroutine(CoConnect());
         }
     }

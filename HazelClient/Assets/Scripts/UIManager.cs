@@ -29,7 +29,7 @@ public class UIManager : MonoBehaviour
     {
         menuCanvas.SetActive(false);
         usernameInputField.interactable = false;
-        HazelNetworkManager.instance.ConnectToServer();
+        HazelNetworkManager.instance.ConnectToServer(usernameInputField.text);
     }
 
     public void ConnectionLost()
