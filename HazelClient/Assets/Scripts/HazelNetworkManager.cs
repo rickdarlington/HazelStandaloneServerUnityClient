@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Net;
 using UnityEngine;
 
-// Obviously this isn't a real Unity project, but we'll just pretend.
-// I don't want to create the external buttons and stuff, so that's totally up to you.
 namespace UnityClient
 {
     // Maybe you want to use another lib to keep this in sync?
@@ -21,9 +19,7 @@ namespace UnityClient
         ServerMessage,  // 4 
         GameData
     }
-
-    // Usually this kind of class should be a singleton, but everyone has 
-    // their own way of doing that. So I leave it up to you.
+    
     internal class HazelNetworkManager : MonoBehaviour
     {
         public static HazelNetworkManager instance;

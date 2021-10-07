@@ -37,7 +37,6 @@ namespace HazelServer
         //TODO optimize, maybe use a dictionary/etc for getting player by name
         public Player GetPlayerByName(string name)
         {
-            Console.WriteLine($"checking for player {name}");
             Player p = null;
             lock (_playerList)
             {
@@ -45,7 +44,6 @@ namespace HazelServer
                 {
                     if (player.name == name)
                     {
-                        Console.WriteLine("found player");
                         p = player;
                         break;
                     }
