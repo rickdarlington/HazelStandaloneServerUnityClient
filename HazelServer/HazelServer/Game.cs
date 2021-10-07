@@ -33,7 +33,28 @@ namespace HazelServer
         {
             return _playerList.Count;
         }
-        
+
+        //TODO optimize, maybe use a dictionary/etc for getting player by name
+        public Player GetPlayerByName(string name)
+        {
+            Console.WriteLine($"checking for player {name}");
+            Player p = null;
+            lock (_playerList)
+            {
+                foreach (var player in _playerList)
+                {
+                    if (player.name == name)
+                    {
+                        Console.WriteLine("found player");
+                        p = player;
+                        break;
+                    }
+                }
+            }
+
+            return p;
+        }
+
         //TODO for class: combine all try/connection.send/recycle calls
         public void AddPlayer(Player newPlayer)
         {

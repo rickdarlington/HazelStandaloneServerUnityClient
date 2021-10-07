@@ -193,8 +193,7 @@ namespace UnityClient
                             ServerInitResponse(msg);
                             break; 
                         case MessageTags.LoginFailed:
-                            //TODO handle login failure
-                            Debug.Log($"[NOT IMPLEMENTED] message type: MessageTags.LoginFailed]");
+                            ServerLoginFailure(msg);
                             break;
                         case MessageTags.LoginSuccess:
                             ServerLoginResponse(msg);
@@ -246,6 +245,13 @@ namespace UnityClient
             _loggedIn = true;
         }
 
+        private void ServerLoginFailure(MessageReader msg)
+        {
+            Debug.Log($"[ERROR] login failed with error: {msg.ReadString()}");
+            _loggedIn = false;
+            //TODO boot to login screen
+        }
+
         private void HandleServerMessage(MessageReader msg)
         {
             Debug.Log($"Received Server Message: {msg.ReadString()}");
@@ -259,7 +265,11 @@ namespace UnityClient
 
         public void ConnectToServer(string playerName)
         {
-            _playerName = playerName;
+            if (playerName != "")
+            {
+                _playerName = playerName;
+            }
+
             StartCoroutine(CoConnect());
         }
     }

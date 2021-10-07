@@ -14,7 +14,7 @@ namespace HazelServer
         public Vector2 position = new Vector2(0, 0);
 
         private bool loggedIn = false;
-        private String _name;
+        public String name { get; private set; }
 
         public Player(Connection c)
         {
@@ -41,16 +41,14 @@ namespace HazelServer
                     {
                         case MessageTags.LogIn:
                             string playerName = msg.ReadString();
-                            Console.WriteLine($"{DateTime.UtcNow} [TRACE] \"{playerName}\" is logging in.");
+                            Console.WriteLine($"{DateTime.UtcNow} [TRACE] \"{playerName}\" is trying to log in");
                             if (LogIn(playerName))
                             {
-                                SendReliable(MessageTags.LoginSuccess);
-                                //TODO login success message
+                                SendReliable(MessageTags.LoginSuccess, null);
                             }
                             else
                             {
-                                SendReliable(MessageTags.LoginFailed);
-                                //TODO send login failed message
+                                SendReliable(MessageTags.LoginFailed, $"{playerName} is already logged in!");
                             }
 
                             break;
@@ -79,16 +77,32 @@ namespace HazelServer
 
         private bool LogIn(string name)
         {
-            //TODO check if name is in use, password, etc
-            _name = name;
-            return true;
+            if (Game.Instance.GetPlayerByName(name) == null)
+            {
+                this.name = name;
+                Console.WriteLine($"{DateTime.UtcNow} [DEBUG] {name} logged in successfully");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"{DateTime.UtcNow} [ERROR] {connection.EndPoint.Address} is trying to log in as {name} who is already logged in");
+                return false;
+            }
         }
         
         
-        public void SendReliable(MessageTags tag)
+        //TODO how do we genericize this?  we want to send errors with strings, but sometimes just tags.  we don't 
+        //really want to keep track on both client and server whether we can read the error string from the message
+        public void SendReliable(MessageTags tag, string messageString)
         {
             var msg = MessageWriter.Get(SendOption.Reliable);
             msg.StartMessage((byte)tag);
+
+            if (messageString != null)
+            {
+                msg.Write(messageString);
+            }
+            
             msg.EndMessage();
             try
             {
