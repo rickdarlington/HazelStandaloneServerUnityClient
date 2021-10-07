@@ -1,5 +1,7 @@
 using System;
+using System.Threading;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace UnityClient.Utilities
@@ -42,26 +44,21 @@ namespace UnityClient.Utilities
             DontDestroyOnLoad(gameObject);
         }
 
-        private void Update()
+        public void Toggle(InputAction.CallbackContext context)
         {
-            if (Input.GetKeyDown(KeyCode.R))
+            if (context.action.triggered)
             {
-                Debug.Log("pressed tilde");
-                Toggle();
-            }
-        }
-
-        private void Toggle()
-        {
-            
-            if (uiCanvas.activeSelf)
-            {
-                uiCanvas.SetActive(false);
-            }
-            else
-            {
-                uiCanvas.SetActive(true);
-                _consoleInputField.ActivateInputField();
+                if (uiCanvas.activeSelf)
+                {
+                    Debug.Log("deactivate console");
+                    uiCanvas.SetActive(false);
+                }
+                else
+                {
+                    Debug.Log("activate console");
+                    uiCanvas.SetActive(true);
+                    _consoleInputField.ActivateInputField();
+                } 
             }
         }
 
