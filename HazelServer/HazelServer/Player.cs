@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using Hazel;
 using System.Threading;
 
@@ -11,6 +12,7 @@ namespace HazelServer
         
         private static int _playerCounter = 0;
         private readonly Server _server;
+        public Vector2 position = new Vector2(0, 0);
 
         private String _name;
         
@@ -19,6 +21,7 @@ namespace HazelServer
             //TODO should server just be a singleton get from Program.cs?
             _server = server;
             _name = name;
+
             connection = c;
             id = Interlocked.Increment(ref _playerCounter);
         }
@@ -47,7 +50,7 @@ namespace HazelServer
 
                             lock (this)
                             {
-                                _server._game.AddPlayer(this);
+                                Game.Instance.AddPlayer(this);
                                 message.Write(id);
                             }
 
@@ -80,8 +83,8 @@ namespace HazelServer
         public void HandleDisconnect(object sender, DisconnectedEventArgs e)
         {
             Console.WriteLine($"{DateTime.UtcNow} [DEBUG] Disconnecting player id: {id}");
-            _server._game.removePlayer(this);
-            //TODO shoudn't we destroy the player 
+            Game.Instance.removePlayer(this);
+            //TODO shouldn't we destroy the player 
             // There's actually nothing to do in this simple case!
             // If HandleDisconnect is called, then dispose is also guaranteed to be called.
             // Feel free to log e.Reason, clean up anything associated with a player disconnecting, etc.

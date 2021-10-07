@@ -5,19 +5,36 @@ using System.Threading;
 
 namespace HazelServer
 {
-    internal class GameData
+    internal class Game
     {
         private static int GameCounter = 0;
-
         public readonly int id = 333;
 
-        private List<Player> _playerList = new List<Player>();
+        private List<Player> _playerList = new();
+        
+        private static Game instance;
 
+        public static Game Instance
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    instance = new Game();
+                }
+
+                return instance;
+            }
+        }
+
+        private Game() {}
+        
         public int PlayerCount()
         {
             return _playerList.Count;
         }
         
+        //TODO for class: combine all try/connection.send/recycle calls
         public void AddPlayer(Player newPlayer)
         {
             lock (_playerList)
@@ -42,6 +59,8 @@ namespace HazelServer
                 Console.WriteLine($"{DateTime.UtcNow} [ERROR] error in GameData.AddPlayer()");
                 //TODO handle "can't send to player" case
             }
+            
+            msg.Recycle();
         }
 
         public void removePlayer(Player p)
@@ -55,7 +74,29 @@ namespace HazelServer
 
         public void Send(MessageWriter msg, Player toPlayer)
         {
+            //TODO try/catch
             toPlayer.connection.Send(msg);
+            msg.Recycle();
+        }
+
+        public void ProcessPlayerInputs()
+        {
+            //TODO implement me
+            lock (_playerList)
+            {
+                foreach (var player in _playerList)
+                {
+                    try
+                    {
+                        player.position.X += 0.01f;
+                        player.position.Y += 0.01f;
+                    }
+                    catch
+                    {
+                        Console.WriteLine($"{DateTime.UtcNow} [ERROR] error processing inputs for player {player.id}");
+                    }
+                }
+            }
         }
 
         public void SendPlayerPositionUpdate()
@@ -65,9 +106,13 @@ namespace HazelServer
             {
                 foreach (var player in _playerList)
                 {
+                    var msg = MessageWriter.Get();
+                    
                     try
                     {
-                        player.
+                        //these should be sent all together as gamedata?
+                        msg.StartMessage((byte)PlayerMessageTags.GameData);
+                        //msg.Write();
                         player.connection.Send(msg);
                     }
                     catch
@@ -76,6 +121,8 @@ namespace HazelServer
                         //TODO handle "can't send to player" case
                         // Maybe you want to disconnect the player if you can't send?
                     }
+                    
+                    msg.Recycle();
                 }
             }
         }
@@ -92,6 +139,7 @@ namespace HazelServer
                     try
                     {
                         player.connection.Send(msg);
+                        
                     }
                     catch
                     {
@@ -100,6 +148,8 @@ namespace HazelServer
                         // Maybe you want to disconnect the player if you can't send?
                     }
                 }
+                
+                msg.Recycle();
             }
         }
     }

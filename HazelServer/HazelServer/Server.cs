@@ -6,27 +6,15 @@ using System.Threading;
 
 namespace HazelServer
 {
-    internal enum PlayerMessageTags
-    {
-        JoinGame,       // 0
-        LeaveGame,      // 1
-        PlayerInit,     // 2
-        PlayerJoined,   // 3
-        PlayerLeft,     // 4
-        PlayersInGame,  // 5
-        ServerMessage,  // 6
-        GameData        // 7
-    }
-
     internal class Server
     {
+        private readonly bool _amService;
         private const int ServerPort = 30003;
+        private UdpConnectionListener UdpServerInstance;
 
-        private bool _amService;
-        public GameData _game { get; private set; }
-
-        private UdpConnectionListener _udpServerRef;
-
+        private readonly GameStateUpdateLogic _gameStateUpdateLogic;
+        //TODO private readonly AIUpdateLogic _aiUpdateLogic;
+        
         private static void Main(string[] args)
         {
             bool amService = false;
@@ -39,27 +27,26 @@ namespace HazelServer
         public Server(bool amService)
         {
             _amService = amService;
+            _gameStateUpdateLogic = new();
         }
         
         private void Run()
         {
-            _game = new GameData();
-            
-            using (var udpServer = new UdpConnectionListener(new IPEndPoint(IPAddress.Any, ServerPort), IPMode.IPv4))
+            UdpServerInstance = new UdpConnectionListener(new IPEndPoint(IPAddress.Any, ServerPort), IPMode.IPv4);
+            using (UdpServerInstance)
             {
-                Console.WriteLine($"{DateTime.UtcNow} [START] Starting server");
+                Console.WriteLine($"{DateTime.UtcNow} [START] Starting server"); 
+                UdpServerInstance.NewConnection += HandleNewConnection; 
+                UdpServerInstance.Start();
                 
-                _udpServerRef = udpServer;
-                udpServer.NewConnection += HandleNewConnection;
-                udpServer.Start();
-
+                //spawn game logic thread
+                Thread stateLogicThread = new Thread(_gameStateUpdateLogic.thread);
+                stateLogicThread.Start();
+                
                 var running = true;
+                //spawn server threads and run
                 while (running)
                 {
-                    //spawn game logic thread
-                    Thread StateManagerThread = new Thread(StateUpdateThread);
-                    StateManagerThread.Start();
-                    
                     if (_amService)
                     {
                         // When running as a service, the main thread really doesn't need to do anything
@@ -90,7 +77,7 @@ namespace HazelServer
             }
         }
 
-        private void ServerCommand(String input)
+        private void ServerCommand(string input)
         {
             switch (input)
             {
@@ -100,16 +87,20 @@ namespace HazelServer
                     msg.StartMessage((byte)PlayerMessageTags.ServerMessage);
                     msg.Write("hi");
                     msg.EndMessage();
-                    _game.Broadcast(msg);
+                    Game.Instance.Broadcast(msg);
                     Console.WriteLine($"> broadcast sent");
                     break;
                 case "pc":
                 case "player count":
-                    Console.WriteLine($"> Players online: {_game.PlayerCount()}");
+                    Console.WriteLine($"> Players online: {Game.Instance.PlayerCount()}");
                     break;
                 case "sc":
                 case "show connections":
-                    Console.WriteLine($"> udp connections: " + _udpServerRef.ConnectionCount);
+                    Console.WriteLine($"> udp connections: " + UdpServerInstance.ConnectionCount);
+                    break;
+                case "rw":
+                    Console.WriteLine($"> Readers: {MessageReader.ReaderPool.NumberInUse}/{MessageReader.ReaderPool.NumberCreated}/{MessageReader.ReaderPool.Size}");
+                    Console.WriteLine($"> Writers: {MessageWriter.WriterPool.NumberInUse}/{MessageWriter.WriterPool.NumberCreated}/{MessageWriter.WriterPool.Size}");
                     break;
                 default: 
                     Console.WriteLine($"> input error");
@@ -138,46 +129,17 @@ namespace HazelServer
                 //var playerName = obj.HandshakeData.ReadString();
 
                 var player = new Player(this, obj.Connection, "test");
-                _game.AddPlayer(player);
+                Game.Instance.AddPlayer(player);
                 
-                //TODO is this even working?  HandleDisconnect never gets invoked
                 obj.Connection.DataReceived += player.HandleMessage;
+                
+                //TODO is this even working? hazel bug?  HandleDisconnect never gets invoked
                 obj.Connection.Disconnected += player.HandleDisconnect;
             }
             finally
             {
                 // Always recycle messages!
                 obj.HandshakeData.Recycle();
-            }
-        }
-        
-        public void StateUpdateThread()
-        {
-            Console.WriteLine($"{DateTime.UtcNow} [START] Starting game update loop");
-            //update loop 
-            long tickRate = 100; //10 ticks per second
-            int dt = 0;
-            while (true)
-            {
-                long startTimeMS = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-
-                
-                
-                //UpdatePlayerPositions(_game);
-                //SendPlayerStateDataUpdates();
-                
-                long finishTimeMS = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-                long elapsedTimeMS = finishTimeMS - startTimeMS;
-                
-                if (elapsedTimeMS < tickRate)
-                {
-                    dt = (int)tickRate - (int)elapsedTimeMS;
-                    Thread.Sleep(dt);
-                }
-                else
-                {
-                    Console.WriteLine($"Position update took longer ({elapsedTimeMS}) than tick {tickRate}");
-                }
             }
         }
     }
