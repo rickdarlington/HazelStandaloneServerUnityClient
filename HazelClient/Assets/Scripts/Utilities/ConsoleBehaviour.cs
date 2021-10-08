@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -13,7 +14,7 @@ namespace UnityClient.Utilities
 
         [Header("UI")] 
         [SerializeField] private GameObject uiCanvas = null;
-        [SerializeField] private InputField _consoleInputField = null;
+        [SerializeField] private TMP_InputField _consoleInputField = null;
 
         private static ConsoleBehaviour instance;
         private Console _console;
