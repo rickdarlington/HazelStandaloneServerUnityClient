@@ -167,7 +167,7 @@ namespace UnityClient
                 // EventQueue.Add(ChangeToMainMenuSceneWithError(e.Reason));
                 
                 //TODO is this the right way to do this?  we should probably implement the eventqueue idea above
-                UIMenuBehavior.instance.ConnectionLost();
+                UIMenuBehavior.instance.ConnectionLost("server disconnected");
             }
         }
         
@@ -223,14 +223,21 @@ namespace UnityClient
             Debug.Log($"[INFO] connected to server with player id: {myId}");
 
             //TODO this is where you want to send your login information
-            //TODO get player name from input field
             Debug.Log($"[DEBUG] sending log in message for {_playerName}");
             var msg = MessageWriter.Get(SendOption.Reliable);
             msg.StartMessage((byte)MessageTags.LogIn);
             msg.Write(_playerName);
             msg.EndMessage();
 
-            try { _connection.Send(msg); } catch { Debug.Log($"Caught exception in LogIn for connection {_connection.EndPoint.Address}"); }
+            try
+            {
+                _connection.Send(msg);
+            }
+            catch(Exception e)
+            {
+                Debug.Log($"Caught exception in LogIn for connection {_connection.EndPoint.Address}");
+                Debug.Log(e.Message);
+            }
             msg.Recycle();
         }
 
@@ -245,6 +252,7 @@ namespace UnityClient
             Debug.Log($"[ERROR] login failed with error: {msg.ReadString()}");
             _loggedIn = false;
             //TODO boot to login screen
+            UIMenuBehavior.instance.ConnectionLost(msg.ReadString());
         }
 
         private void HandleServerMessage(MessageReader msg)

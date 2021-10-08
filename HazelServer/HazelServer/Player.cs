@@ -85,7 +85,7 @@ namespace HazelServer
             }
             else
             {
-                Console.WriteLine($"{DateTime.UtcNow} [ERROR] {connection.EndPoint.Address} is trying to log in as {name} who is already logged in");
+                Console.WriteLine($"{DateTime.UtcNow} [ERROR] {connection.EndPoint.Address} is trying to log in as \"{name}\" who is already logged in");
                 return false;
             }
         }

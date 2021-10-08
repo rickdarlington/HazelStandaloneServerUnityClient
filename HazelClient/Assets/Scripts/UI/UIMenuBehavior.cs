@@ -29,15 +29,15 @@ namespace UnityClient
         {
             Debug.Log("clicked connect");
             uiCanvas.SetActive(false);
-            playerNameInputField.interactable = false;
             HazelNetworkManager.instance.ConnectToServer(playerNameInputField.text);
         }
 
-        public void ConnectionLost()
+        public void ConnectionLost(string message)
         {
-            Debug.Log("booted/connection lost :(");
+            Debug.Log($"[ERROR] disconnected: {message}");
+            
+            //TODO why doesn't the MenuCanvasBackground become active when we hit here?
             uiCanvas.SetActive(true);
-            playerNameInputField.interactable = true;
         }
     }
 }
