@@ -164,11 +164,7 @@ namespace UnityClient
             lock (eventQueue)
             {
                 eventQueue.Clear();
-                // Maybe something like:
-                // EventQueue.Add(ChangeToMainMenuSceneWithError(e.Reason));
-                
-                //TODO is this the right way to do this?  we should probably implement the eventqueue idea above
-                UIMenuBehavior.instance.ConnectionLost("server disconnected");
+                eventQueue.Add(serverDisconnected);
             }
         }
         
@@ -288,10 +284,21 @@ namespace UnityClient
         {
             if (_connection == null)
             {
+                Debug.Log("_connection is null, not connected");
                 return false;
             }
-            
+
+            Debug.Log($"connection state: {_connection.State}");
+
             return (_connection.State == ConnectionState.Connected);
         }
+
+        /// <summary>
+        /// actions that need to be handled by the main thread
+        /// </summary>
+        public Action serverDisconnected = () =>
+        {
+            UIMenuBehavior.instance.ConnectionLost("server connection lost");   
+        };
     }
 }

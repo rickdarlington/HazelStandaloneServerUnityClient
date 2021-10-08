@@ -80,7 +80,7 @@ namespace HazelServer
             if (Game.Instance.GetPlayerByName(name) == null)
             {
                 this.name = name;
-                Console.WriteLine($"{DateTime.UtcNow} [DEBUG] {name} logged in successfully");
+                Console.WriteLine($"{DateTime.UtcNow} [DEBUG] \"{name}\" logged in successfully");
                 return true;
             }
             else

@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -24,6 +25,22 @@ namespace UnityClient
             else
             {
                 Destroy(gameObject);
+            }
+        }
+
+        public void Update()
+        {
+            //this is hacky, we should be processing the eventqueue in some game logic somewhere
+            var eventQueue = HazelNetworkManager.instance.eventQueue;
+            lock (eventQueue)
+            {
+                foreach (var action in eventQueue)
+                {
+                    if (action.Method.Name.StartsWith("UI_"))
+                    {
+                        
+                    }
+                }
             }
         }
 
@@ -65,10 +82,18 @@ namespace UnityClient
 
         public void ConnectionLost(string message)
         {
-            Debug.Log($"[ERROR] disconnected: {message}");
-            //TODO why doesn't the MenuCanvasBackground become active when we hit here?
-            //uiCanvas.SetActive(true);
-            Debug.Log("should be showing menu here");
+            try
+            {
+                Debug.Log($"[ERROR] disconnected: {message}");
+                //TODO why doesn't the MenuCanvasBackground become active when we hit here?
+                uiCanvas.SetActive(true);
+                playerNameInputField.interactable = true;
+                loginButton.interactable = true;
+            }
+            catch (Exception e)
+            {
+                Debug.Log($"error after connection lost {e.Message}");
+            }
         }
     }
 }
