@@ -21,8 +21,10 @@ public class UIManager : MonoBehaviour
         else if (instance != null)
         {
             Debug.Log("[TODO] why would you ever get here?  eliminate this");
-            Destroy(this);
+            Destroy(gameObject);
         }
+        
+        DontDestroyOnLoad(gameObject);
     }
 
     public void ConnectClicked()

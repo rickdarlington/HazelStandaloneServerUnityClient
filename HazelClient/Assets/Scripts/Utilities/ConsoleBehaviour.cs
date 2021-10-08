@@ -44,6 +44,7 @@ namespace UnityClient.Utilities
             DontDestroyOnLoad(gameObject);
         }
 
+        //called by input actions (new input system)
         public void Toggle(InputAction.CallbackContext context)
         {
             if (context.action.triggered)
