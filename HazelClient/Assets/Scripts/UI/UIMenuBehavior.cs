@@ -5,7 +5,8 @@ namespace UnityClient
 {
     public class UIMenuBehavior : MonoBehaviour
     {
-        [Header("UI")] [SerializeField] private GameObject uiCanvas = null;
+        [Header("UI")] 
+        [SerializeField] private GameObject uiCanvas = null;
         [SerializeField] private InputField playerNameInputField = null;
 
         public static UIMenuBehavior instance { get; private set; }
@@ -35,8 +36,8 @@ namespace UnityClient
         public void ConnectionLost()
         {
             Debug.Log("booted/connection lost :(");
-            playerNameInputField.interactable = true;
             uiCanvas.SetActive(true);
+            playerNameInputField.interactable = true;
         }
     }
 }
