@@ -1,9 +1,7 @@
 using System;
-using System.Threading;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 
 namespace UnityClient.Utilities
 {

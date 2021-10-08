@@ -52,6 +52,10 @@ namespace HazelServer
                             }
 
                             break;
+                        case MessageTags.ConsoleMessage:
+                            //TODO there's more to do here...
+                            Console.WriteLine($"{DateTime.UtcNow} [INBOUND] console message from player \"{name}\": {msg.ReadString()}");
+                            break;
                     }
                 }
             }

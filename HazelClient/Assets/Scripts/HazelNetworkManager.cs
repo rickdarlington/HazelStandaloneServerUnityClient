@@ -17,7 +17,8 @@ namespace UnityClient
         LoginSuccess,   // 2
         LoginFailed,    // 3
         ServerMessage,  // 4 
-        GameData
+        GameData,       // 5
+        ConsoleMessage
     }
     
     internal class HazelNetworkManager : MonoBehaviour
@@ -107,7 +108,6 @@ namespace UnityClient
                 catch 
                 {
                     Debug.Log("[TODO] handle this catch in Update()");
-                    // Logging, probably
                 }
 
                 msg.Clear(msg.SendOption);
@@ -116,12 +116,12 @@ namespace UnityClient
             }
         }
 
-        //this is a coroutine, hence the "Co in CoConnect"
+        //this is a coroutine, hence the "Co" in CoConnect
         public IEnumerator CoConnect()
         {
             Debug.Log("[EXEC] CoConnect");
             _connectInProgress = true;
-            // Initialize streams (once)
+            // only initialize streams once
             if (_streams == null)
             {
                 _streams = new MessageWriter[2];
@@ -131,7 +131,7 @@ namespace UnityClient
                 }
             }
 
-            // Clear any existing data, and prep them for batching
+            //clear any existing data, and prep them for batching
             for (int i = 0; i < _streams.Length; ++i)
             {
                 var stream = _streams[i];
@@ -140,7 +140,6 @@ namespace UnityClient
                 stream.Write(_gameId);
             }
 
-            //TODO update to not force loopback connection
             _connection = new UdpClientConnection(new IPEndPoint(ServerAddress, ServerPort));
             _connection.DataReceived += HandleMessage;
             _connection.Disconnected += HandleDisconnect;
@@ -158,7 +157,7 @@ namespace UnityClient
             _connectInProgress = false;
         }
 
-        // Remember this is on a new thread.
+        // Remember this is on a new thread, anything you need to do to gameobjects has to be in the eventQueue
         private void HandleDisconnect(object sender, DisconnectedEventArgs e)
         {
             Debug.Log($"[INFO] server disconnected");
@@ -215,6 +214,7 @@ namespace UnityClient
             }
         }
 
+        //TODO make some cleaner "send message to server" methods and cleanup below duplication
         private void ServerInitResponse(MessageReader reader)
         {
             int myId = reader.ReadInt32();
@@ -235,6 +235,7 @@ namespace UnityClient
                     //wait while _connectInProgress is true.
                     // There's a race condition here such that you might try to call _connection.Send
                     // before the connection is actually ready.  WTF.
+                    Debug.Log($"[WARNING] waiting for connection to complete before sending login info");
                 }
                 _connection.Send(msg);
             }
@@ -294,6 +295,27 @@ namespace UnityClient
             return (_connection.State == ConnectionState.Connected);
         }
 
+        public void SendConsoleToServer(string message)
+        {
+            Debug.Log($"[DEBUG] sending console message to server: \"{message}\"");
+            var msg = MessageWriter.Get(SendOption.Reliable);
+            msg.StartMessage((byte)MessageTags.ConsoleMessage);
+            msg.Write(message);
+            
+            msg.EndMessage();
+
+            try
+            {
+                _connection.Send(msg);
+            }
+            catch(Exception e)
+            {
+                Debug.Log($"[ERROR] Caught exception in console message send");
+                Debug.Log($"[EXCEPTION] {e.Message}");
+            }
+            msg.Recycle();
+        }
+        
         /// <summary>
         /// actions that need to be handled by the main thread
         /// </summary>

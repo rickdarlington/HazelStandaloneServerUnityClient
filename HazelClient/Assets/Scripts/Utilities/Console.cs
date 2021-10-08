@@ -9,7 +9,7 @@ namespace UnityClient.Utilities
     public interface IConsoleCommand
     {
         string CommandWord { get; }
-        bool Process(string[] args);
+        bool Process(string args);
     }
     
     public abstract class ConsoleCommand : ScriptableObject, IConsoleCommand
@@ -18,7 +18,7 @@ namespace UnityClient.Utilities
 
         public string CommandWord => commandWord;
 
-        public abstract bool Process(string[] args);
+        public abstract bool Process(string args);
     }
 
     public class Console
@@ -40,12 +40,12 @@ namespace UnityClient.Utilities
             }
 
             inputValue = inputValue.Remove(0, _prefix.Length);
-            string[] args = inputValue.Split(' ').Skip(1).ToArray();
+            string args = inputValue.Split(' ').Skip(1).ToString();
             
             ProcessCommand(inputValue, args);
         }
 
-        public void ProcessCommand(string commandInput, string[] args)
+        public void ProcessCommand(string commandInput, string args)
         {
             foreach (var command in _commands)
             {
