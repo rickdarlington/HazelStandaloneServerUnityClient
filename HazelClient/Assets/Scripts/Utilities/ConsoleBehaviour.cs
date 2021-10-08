@@ -33,15 +33,15 @@ namespace UnityClient.Utilities
 
         private void Awake()
         {
-            if (instance != null && instance != this)
+            if (instance == null)
+            {
+                instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else
             {
                 Destroy(gameObject);
-                return;
             }
-
-            instance = this;
-            
-            DontDestroyOnLoad(gameObject);
         }
 
         //called by input actions (new input system)

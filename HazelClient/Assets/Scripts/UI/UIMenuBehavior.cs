@@ -15,15 +15,15 @@ namespace UnityClient
         
         private void Awake()
         {
-            if (instance != null && instance != this)
+            if (instance == null)
+            {
+                instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else
             {
                 Destroy(gameObject);
-                return;
             }
-            
-            instance = this;
-
-            DontDestroyOnLoad(gameObject);
         }
 
         public void ToggleMenu(InputAction.CallbackContext context)
