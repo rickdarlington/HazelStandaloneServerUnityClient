@@ -22,16 +22,18 @@ namespace UnityClient
     
     internal class HazelNetworkManager : MonoBehaviour
     {
-        public static HazelNetworkManager instance;
-        
-        private const int _serverPort = 30003;
         //TODO we can optimize by removing this, as we only have one "game" running at a time
         private const int _gameId = 333;
+        
+        public static HazelNetworkManager instance;
+        
+        public readonly IPAddress ServerAddress = IPAddress.Loopback;
+        public readonly int ServerPort = 30003;
         
         // Unity gets very grumpy if you start messing with GameObjects on threads
         // other than the main one. So while sending/receiving messages can be multithreaded,
         // we need a queue to hold events until a Update/FixedUpdate method can handle them.
-        public List<Action> eventQueue = new List<Action>();
+        public readonly List<Action> eventQueue = new List<Action>();
 
         // How many seconds between batched messages
         public float minSendInterval = .1f;
@@ -43,11 +45,10 @@ namespace UnityClient
         private MessageWriter[] _streams;
 
         private float timer = 0;
-
         private bool _loggedIn = false;
         private bool _connectInProgress = false;
 
-        private string _playerName = "nobody";
+        public string PlayerName { get; private set; } = "nobody"; 
 
         private void Awake()
         {
@@ -140,7 +141,7 @@ namespace UnityClient
             }
 
             //TODO update to not force loopback connection
-            _connection = new UdpClientConnection(new IPEndPoint(IPAddress.Loopback, _serverPort));
+            _connection = new UdpClientConnection(new IPEndPoint(ServerAddress, ServerPort));
             _connection.DataReceived += HandleMessage;
             _connection.Disconnected += HandleDisconnect;
             
@@ -220,10 +221,10 @@ namespace UnityClient
             Debug.Log($"[INFO] connected to server with player id: {myId}");
 
             //TODO this is where you want to send your login information
-            Debug.Log($"[DEBUG] sending log in message for {_playerName}");
+            Debug.Log($"[DEBUG] sending log in message for {PlayerName}");
             var msg = MessageWriter.Get(SendOption.Reliable);
             msg.StartMessage((byte)MessageTags.LogIn);
-            msg.Write(_playerName);
+            msg.Write(PlayerName);
             msg.EndMessage();
 
             try
@@ -274,7 +275,7 @@ namespace UnityClient
         {
             if (playerName != "")
             {
-                _playerName = playerName;
+                PlayerName = playerName;
             }
 
             StartCoroutine(CoConnect());

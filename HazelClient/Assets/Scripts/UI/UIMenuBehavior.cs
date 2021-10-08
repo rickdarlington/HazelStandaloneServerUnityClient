@@ -1,4 +1,3 @@
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -12,6 +11,8 @@ namespace UnityClient
         [SerializeField] private GameObject uiCanvas = null;
         [SerializeField] private TMP_InputField playerNameInputField = null;
         [SerializeField] private Button loginButton = null;
+        [SerializeField] private TMP_Text connectionStatusField = null;
+
 
         public static UIMenuBehavior instance { get; private set; }
         
@@ -52,24 +53,40 @@ namespace UnityClient
                 var isConnected = HazelNetworkManager.instance.IsConnected();
                 if (uiCanvas.activeSelf && isConnected)
                 {
-                    uiCanvas.SetActive(false);
+                    DeactivateMenu();
                 }
                 else
                 {
-                    //activate menu
-                    uiCanvas.SetActive(true);
-                    if (isConnected)
-                    {
-                        playerNameInputField.interactable = false;
-                        loginButton.interactable = false;
-                    }
-                    else
-                    {
-                        playerNameInputField.interactable = true;
-                        loginButton.interactable = true;
-                    }
+                    ActivateMenu();
                 }
             }
+        }
+
+        private void ActivateMenu()
+        {
+            uiCanvas.SetActive(true);
+            if (HazelNetworkManager.instance.IsConnected())
+            {
+                var netman = HazelNetworkManager.instance;
+                playerNameInputField.interactable = false;
+                loginButton.interactable = false;
+                Debug.Log(netman.ServerAddress);
+                Debug.Log(netman.ServerPort);
+                Debug.Log(netman.PlayerName);
+
+                connectionStatusField.text = $"Connected to {netman.ServerAddress}:{netman.ServerPort} as {netman.PlayerName}";
+            }
+            else
+            {
+                connectionStatusField.text = "Disconnected...";
+                playerNameInputField.interactable = true;
+                loginButton.interactable = true;
+            }
+        }
+
+        private void DeactivateMenu()
+        {
+            uiCanvas.SetActive(false);
         }
 
         public void ConnectClicked()
@@ -83,9 +100,7 @@ namespace UnityClient
         public void ConnectionLost(string message)
         {
             Debug.Log($"[ERROR] disconnected: {message}");
-            uiCanvas.SetActive(true);
-            playerNameInputField.interactable = true;
-            loginButton.interactable = true;
+            ActivateMenu();
         }
     }
 }
