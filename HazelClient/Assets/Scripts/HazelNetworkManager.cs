@@ -275,5 +275,18 @@ namespace UnityClient
 
             StartCoroutine(CoConnect());
         }
+
+        public bool IsConnected()
+        {
+            if (_connection == null)
+            {
+                Debug.Log("_connection is null, not connected");
+                return false;
+            }
+
+            Debug.Log($"connection state: {_connection.State}");
+
+            return (_connection.State == ConnectionState.Connected);
+        }
     }
 }
