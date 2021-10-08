@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -8,7 +9,7 @@ namespace UnityClient
     {
         [Header("UI")] 
         [SerializeField] private GameObject uiCanvas = null;
-        [SerializeField] private InputField playerNameInputField = null;
+        [SerializeField] private TMP_InputField playerNameInputField = null;
         [SerializeField] private Button loginButton = null;
 
         public static UIMenuBehavior instance { get; private set; }
