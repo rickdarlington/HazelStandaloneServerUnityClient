@@ -82,18 +82,10 @@ namespace UnityClient
 
         public void ConnectionLost(string message)
         {
-            try
-            {
-                Debug.Log($"[ERROR] disconnected: {message}");
-                //TODO why doesn't the MenuCanvasBackground become active when we hit here?
-                uiCanvas.SetActive(true);
-                playerNameInputField.interactable = true;
-                loginButton.interactable = true;
-            }
-            catch (Exception e)
-            {
-                Debug.Log($"error after connection lost {e.Message}");
-            }
+            Debug.Log($"[ERROR] disconnected: {message}");
+            uiCanvas.SetActive(true);
+            playerNameInputField.interactable = true;
+            loginButton.interactable = true;
         }
     }
 }
