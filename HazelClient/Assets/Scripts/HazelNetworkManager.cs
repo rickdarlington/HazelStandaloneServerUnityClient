@@ -45,6 +45,7 @@ namespace UnityClient
         private float timer = 0;
 
         private bool _loggedIn = false;
+        private bool _connectInProgress = false;
 
         private string _playerName = "nobody";
 
@@ -117,9 +118,8 @@ namespace UnityClient
         //this is a coroutine, hence the "Co in CoConnect"
         public IEnumerator CoConnect()
         {
-            // Don't leak connections!
-            if (_connection != null) yield break;
-
+            Debug.Log("[EXEC] CoConnect");
+            _connectInProgress = true;
             // Initialize streams (once)
             if (_streams == null)
             {
@@ -149,11 +149,12 @@ namespace UnityClient
             // If you block in a Unity Coroutine, it'll hang the game!
             _connection.ConnectAsync(GetConnectionData());
 
-            //TODO implement a connection timeout
             while (_connection != null && _connection.State != ConnectionState.Connected)
             {
                 yield return null;
             }
+
+            _connectInProgress = false;
         }
 
         // Remember this is on a new thread.
@@ -231,19 +232,26 @@ namespace UnityClient
 
             try
             {
+                while (_connectInProgress)
+                {
+                    //TODO FIXME
+                    //wait while _connectInProgress is true.
+                    // There's a race condition here such that you might try to call _connection.Send
+                    // before the connection is actually ready.  WTF.
+                }
                 _connection.Send(msg);
             }
             catch(Exception e)
             {
-                Debug.Log($"Caught exception in LogIn for connection {_connection.EndPoint.Address}");
-                Debug.Log(e.Message);
+                Debug.Log($"[ERROR] Caught exception in LogIn for connection {_connection.EndPoint.Address}");
+                Debug.Log($"[EXCEPTION] {e.Message}");
             }
             msg.Recycle();
         }
 
         private void ServerLoginResponse(MessageReader msg)
         {
-            Debug.Log($"Login success");
+            Debug.Log($"[INFO] Login success");
             _loggedIn = true;
         }
 
@@ -280,12 +288,9 @@ namespace UnityClient
         {
             if (_connection == null)
             {
-                Debug.Log("_connection is null, not connected");
                 return false;
             }
-
-            Debug.Log($"connection state: {_connection.State}");
-
+            
             return (_connection.State == ConnectionState.Connected);
         }
     }

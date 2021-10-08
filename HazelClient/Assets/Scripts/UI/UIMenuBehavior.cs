@@ -57,7 +57,6 @@ namespace UnityClient
 
         public void ConnectClicked()
         {
-            Debug.Log("clicked connect");
             uiCanvas.SetActive(false);
             playerNameInputField.interactable = false;
             loginButton.interactable = false;
@@ -68,7 +67,8 @@ namespace UnityClient
         {
             Debug.Log($"[ERROR] disconnected: {message}");
             //TODO why doesn't the MenuCanvasBackground become active when we hit here?
-            uiCanvas.SetActive(true);
+            //uiCanvas.SetActive(true);
+            Debug.Log("should be showing menu here");
         }
     }
 }

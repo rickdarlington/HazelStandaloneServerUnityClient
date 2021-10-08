@@ -52,12 +52,10 @@ namespace UnityClient.Utilities
             {
                 if (uiCanvas.activeSelf)
                 {
-                    Debug.Log("deactivate console");
                     uiCanvas.SetActive(false);
                 }
                 else
                 {
-                    Debug.Log("activate console");
                     uiCanvas.SetActive(true);
                     _consoleInputField.ActivateInputField();
                 } 
