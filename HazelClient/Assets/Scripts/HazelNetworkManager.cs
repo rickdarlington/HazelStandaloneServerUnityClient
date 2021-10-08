@@ -165,10 +165,9 @@ namespace UnityClient
                 eventQueue.Clear();
                 // Maybe something like:
                 // EventQueue.Add(ChangeToMainMenuSceneWithError(e.Reason));
-
-                //TODO handle server disconnections
-                Debug.Log($"[TODO] handle server disconnections");
-                UIManager.instance.ConnectionLost();
+                
+                //TODO is this the right way to do this?  we should probably implement the eventqueue idea above
+                UIMenuBehavior.instance.ConnectionLost();
             }
         }
         

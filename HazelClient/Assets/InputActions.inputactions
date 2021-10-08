@@ -262,7 +262,7 @@
                 {
                     "name": "",
                     "id": "48b0e895-b9f0-4491-87b4-eedafd3ce032",
-                    "path": "<Keyboard>/period",
+                    "path": "<Keyboard>/backquote",
                     "interactions": "Press",
                     "processors": "",
                     "groups": "Keyboard&Mouse",

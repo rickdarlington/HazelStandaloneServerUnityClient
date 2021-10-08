@@ -54,8 +54,8 @@
   <ItemGroup>
      <Compile Include="Assets\Scripts\HazelNetworkManager.cs" />
      <Compile Include="Assets\Scripts\Utilities\Console.cs" />
-     <Compile Include="Assets\Scripts\UIManager.cs" />
      <Compile Include="Assets\Scripts\Utilities\ConsoleBehaviour.cs" />
+     <Compile Include="Assets\Scripts\UI\UIMenuBehavior.cs" />
  <Reference Include="UnityEngine">
  <HintPath>/home/rickd/unity/2020.3.18f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>
  </Reference>
