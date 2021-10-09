@@ -6,7 +6,7 @@ namespace UnityClient
 {
     public class MessageHandler
     {
-        private HazelNetworkManager _networkManager;
+        private readonly HazelNetworkManager _networkManager;
 
         private static MessageHandler instance = null;
 
@@ -66,7 +66,7 @@ namespace UnityClient
             }
             catch (Exception e)
             {
-                Debug.Log($"[EXEPTION] exception in MessageHandler.HandleMessage: {e.Message}");
+                Debug.Log($"[EXCEPTION] exception in MessageHandler.HandleMessage: {e.Message}");
             }
             finally
             {
