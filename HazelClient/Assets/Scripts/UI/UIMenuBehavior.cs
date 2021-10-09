@@ -14,13 +14,13 @@ namespace UnityClient
         [SerializeField] private TMP_Text connectionStatusField = null;
 
 
-        public static UIMenuBehavior instance { get; private set; }
+        public static UIMenuBehavior Instance { get; private set; }
         
         private void Awake()
         {
-            if (instance == null)
+            if (Instance == null)
             {
-                instance = this;
+                Instance = this;
                 DontDestroyOnLoad(gameObject);
             }
             else

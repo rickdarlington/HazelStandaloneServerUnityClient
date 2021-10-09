@@ -119,7 +119,7 @@ namespace UnityClient
             Debug.Log($"[ERROR] login failed with error: {msg.ReadString()}");
             _networkManager.LoggedIn = false;
             //TODO boot to login screen
-            UIMenuBehavior.instance.ConnectionLost(msg.ReadString());
+            UIMenuBehavior.Instance.ConnectionLost(msg.ReadString());
         }
 
         private void HandleServerMessage(MessageReader msg)

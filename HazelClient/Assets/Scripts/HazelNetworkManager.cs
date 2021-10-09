@@ -201,7 +201,7 @@ namespace UnityClient
         /// </summary>
         public Action serverDisconnected = () =>
         {
-            UIMenuBehavior.instance.ConnectionLost("server connection lost");   
+            UIMenuBehavior.Instance.ConnectionLost("server connection lost");   
         };
     }
 }
