@@ -70,7 +70,7 @@ namespace UnityClient.Utilities
             {
                 case "ss":
                 case "sendserver":
-                    HazelNetworkManager.instance.SendConsoleToServer(rest);
+                    MessageHandler.Instance.SendConsoleToServer(rest);
                     break;
                 default:
                     Debug.Log("[ERROR] invalid command.");
@@ -82,7 +82,7 @@ namespace UnityClient.Utilities
 
         private void PlayerChat(string text)
         {
-            HazelNetworkManager.instance.PlayerChat(text);
+            MessageHandler.Instance.PlayerChat(text);
         }
     }
 }

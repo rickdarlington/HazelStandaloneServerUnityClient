@@ -32,7 +32,7 @@ namespace UnityClient
         public void Update()
         {
             //this is hacky, we should be processing the eventqueue in some game logic somewhere
-            var eventQueue = HazelNetworkManager.instance.eventQueue;
+            var eventQueue = HazelNetworkManager.Instance.eventQueue;
             lock (eventQueue)
             {
                 foreach (var action in eventQueue)
@@ -50,7 +50,7 @@ namespace UnityClient
             if (context.action.triggered)
             {
                 //deactivate menu, unless we're not connected
-                var isConnected = HazelNetworkManager.instance.IsConnected();
+                var isConnected = HazelNetworkManager.Instance.IsConnected();
                 if (uiCanvas.activeSelf && isConnected)
                 {
                     DeactivateMenu();
@@ -65,9 +65,9 @@ namespace UnityClient
         private void ActivateMenu()
         {
             uiCanvas.SetActive(true);
-            if (HazelNetworkManager.instance.IsConnected())
+            if (HazelNetworkManager.Instance.IsConnected())
             {
-                var netman = HazelNetworkManager.instance;
+                var netman = HazelNetworkManager.Instance;
                 playerNameInputField.interactable = false;
                 loginButton.interactable = false;
                 Debug.Log(netman.ServerAddress);
@@ -94,7 +94,7 @@ namespace UnityClient
             uiCanvas.SetActive(false);
             playerNameInputField.interactable = false;
             loginButton.interactable = false;
-            HazelNetworkManager.instance.ConnectToServer(playerNameInputField.text);
+            HazelNetworkManager.Instance.ConnectToServer(playerNameInputField.text);
         }
 
         public void ConnectionLost(string message)
