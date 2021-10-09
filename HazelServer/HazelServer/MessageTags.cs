@@ -8,7 +8,8 @@ namespace HazelServer
         LoginFailed,    // 3
         ServerMessage,  // 4 
         GameData,       // 5
-        ConsoleMessage
+        ConsoleMessage, // 6
+        PlayerChat
     }
 }
 

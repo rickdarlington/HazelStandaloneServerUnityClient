@@ -8,27 +8,12 @@ namespace UnityClient.Utilities
     public class ConsoleBehaviour : MonoBehaviour
     {
         [SerializeField] private string prefix = string.Empty;
-        [SerializeField] private ConsoleCommand[] commands = new ConsoleCommand[0];
 
         [Header("UI")] 
         [SerializeField] private GameObject uiCanvas = null;
         [SerializeField] private TMP_InputField _consoleInputField = null;
 
         private static ConsoleBehaviour instance;
-        private Console _console;
-
-        private Console Console
-        {
-            get
-            {
-                if (_console != null)
-                {
-                    return _console; 
-                }
-
-                return _console = new Console(prefix, commands);
-            }
-        }
 
         private void Awake()
         {
@@ -60,10 +45,44 @@ namespace UnityClient.Utilities
             }
         }
 
-        public void ProcessCommand(String inputValue)
+        public void OnEndEdit()
         {
-            Console.ProcessCommand(inputValue);
-            _consoleInputField.text = string.Empty;
+            string text = _consoleInputField.text;
+            if (text.StartsWith(prefix))
+            {
+                ProcessCommand(text);
+            }
+            else
+            {
+                PlayerChat(text);
+            }
+            
+            _consoleInputField.text = string.Empty;        
+        }
+
+        private void ProcessCommand(string text)
+        {
+            text = text.Remove(0, prefix.Length);
+            var command = text.Split()[0];
+            var rest = text.Remove(0, command.Length).TrimStart();
+
+            switch (command)
+            {
+                case "ss":
+                case "sendserver":
+                    HazelNetworkManager.instance.SendConsoleToServer(rest);
+                    break;
+                default:
+                    Debug.Log("[ERROR] invalid command.");
+                    break;
+
+            }
+
+        }
+
+        private void PlayerChat(string text)
+        {
+            HazelNetworkManager.instance.PlayerChat(text);
         }
     }
 }

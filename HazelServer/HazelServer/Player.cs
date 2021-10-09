@@ -53,8 +53,15 @@ namespace HazelServer
 
                             break;
                         case MessageTags.ConsoleMessage:
-                            //TODO there's more to do here...
+                            //TODO do something with console commands
                             Console.WriteLine($"{DateTime.UtcNow} [INBOUND] console message from player \"{name}\": {msg.ReadString()}");
+                            break;
+                        case MessageTags.PlayerChat:
+                            //TODO implement player chat (send message to all other players?)
+                            Console.WriteLine($"{DateTime.UtcNow} [INBOUND] chat message from player \"{name}\": {msg.ReadString()}");
+                            break;
+                        default:
+                            Console.WriteLine($"{DateTime.UtcNow} [ERROR] unhandled message type [{msg.Tag}]");
                             break;
                     }
                 }

@@ -18,7 +18,8 @@ namespace UnityClient
         LoginFailed,    // 3
         ServerMessage,  // 4 
         GameData,       // 5
-        ConsoleMessage
+        ConsoleMessage, // 6
+        PlayerChat
     }
     
     internal class HazelNetworkManager : MonoBehaviour
@@ -286,17 +287,26 @@ namespace UnityClient
         {
             if (_connection == null)
             {
-                Debug.Log("_connection is null, not connected");
                 return false;
             }
-
-            Debug.Log($"connection state: {_connection.State}");
-
+            
             return (_connection.State == ConnectionState.Connected);
         }
 
+        //TODO extract below methods to appropriate class
         public void SendConsoleToServer(string message)
         {
+            if (!IsConnected())
+            {
+                Debug.Log("[ERROR] you can't send commands to the server if you're not connected");
+                return;
+            }
+
+            if (message.Length == 0)
+            {
+                return;
+            }
+            
             Debug.Log($"[DEBUG] sending console message to server: \"{message}\"");
             var msg = MessageWriter.Get(SendOption.Reliable);
             msg.StartMessage((byte)MessageTags.ConsoleMessage);
@@ -311,6 +321,32 @@ namespace UnityClient
             catch(Exception e)
             {
                 Debug.Log($"[ERROR] Caught exception in console message send");
+                Debug.Log($"[EXCEPTION] {e.Message}");
+            }
+            msg.Recycle();
+        }
+
+        public void PlayerChat(string message)
+        {
+            if (!IsConnected())
+            {
+                Debug.Log("[ERROR] you can't chat if you're not connected");
+                return;
+            }
+            
+            var msg = MessageWriter.Get(SendOption.Reliable);
+            msg.StartMessage((byte)MessageTags.PlayerChat);
+            msg.Write(message);
+            
+            msg.EndMessage();
+
+            try
+            {
+                _connection.Send(msg);
+            }
+            catch(Exception e)
+            {
+                Debug.Log($"[ERROR] Caught exception in chat message send");
                 Debug.Log($"[EXCEPTION] {e.Message}");
             }
             msg.Recycle();
