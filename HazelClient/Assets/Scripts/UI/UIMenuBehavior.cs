@@ -29,22 +29,6 @@ namespace UnityClient
             }
         }
 
-        public void Update()
-        {
-            //this is hacky, we should be processing the eventqueue in some game logic somewhere
-            var eventQueue = HazelNetworkManager.Instance.eventQueue;
-            lock (eventQueue)
-            {
-                foreach (var action in eventQueue)
-                {
-                    if (action.Method.Name.StartsWith("UI_"))
-                    {
-                        
-                    }
-                }
-            }
-        }
-
         public void ToggleMenu(InputAction.CallbackContext context)
         {
             if (context.action.triggered)
