@@ -8,20 +8,7 @@ using UnityEngine;
 
 namespace UnityClient
 {
-    // Maybe you want to use another lib to keep this in sync?
-    // They usually don't change enough for copy-paste to be a problem, though.
-    internal enum MessageTags
-    {
-        ServerInit,     // 0
-        LogIn,          // 1
-        LoginSuccess,   // 2
-        LoginFailed,    // 3
-        ServerMessage,  // 4 
-        GameData,       // 5
-        ConsoleMessage, // 6
-        PlayerChat
-    }
-    
+
     internal class HazelNetworkManager : MonoBehaviour
     {
         //TODO we can optimize by removing this, as we only have one "game" running at a time

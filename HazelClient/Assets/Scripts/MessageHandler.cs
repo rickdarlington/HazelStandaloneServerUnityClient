@@ -1,6 +1,5 @@
 using System;
 using Hazel;
-using UnityEditor.VersionControl;
 using UnityEngine;
 
 namespace UnityClient
@@ -75,7 +74,6 @@ namespace UnityClient
             }
         }
 
-        //TODO make some cleaner "send message to server" methods and cleanup below duplication
         private void ServerInitResponse(MessageReader reader)
         {
             int myId = reader.ReadInt32();
@@ -83,9 +81,64 @@ namespace UnityClient
 
             //TODO this is where you want to send your login information
             Debug.Log($"[DEBUG] sending log in message for {_networkManager.PlayerName}");
-            var msg = MessageWriter.Get(SendOption.Reliable);
-            msg.StartMessage((byte)MessageTags.LogIn);
-            msg.Write(_networkManager.PlayerName);
+            Send(SendOption.Reliable, MessageTags.LogIn, _networkManager.PlayerName);
+        }
+
+        private void ServerLoginResponse(MessageReader msg)
+        {
+            Debug.Log($"[INFO] Login success");
+            _networkManager.LoggedIn = true;
+        }
+
+        private void ServerLoginFailure(MessageReader msg)
+        {
+            Debug.Log($"[ERROR] login failed with error: {msg.ReadString()}");
+            _networkManager.LoggedIn = false;
+            UIMenuBehavior.Instance.ConnectionLost(msg.ReadString());
+        }
+
+        private void HandleServerMessage(MessageReader msg)
+        {
+            Debug.Log($"Received Server Message: {msg.ReadString()}");
+        }
+        
+        public void SendConsoleToServer(string message)
+        {
+            if (!_networkManager.IsConnected())
+            {
+                Debug.Log("[ERROR] you can't send commands to the server if you're not connected");
+                return;
+            }
+
+            if (message.Length == 0)
+            {
+                return;
+            }
+            
+            Debug.Log($"[DEBUG] sending console message to server: \"{message}\"");
+            Send(SendOption.Reliable, MessageTags.ConsoleMessage, message);
+        }
+
+        public void PlayerChat(string message)
+        {
+            if (!_networkManager.IsConnected())
+            {
+                Debug.Log("[ERROR] you can't chat if you're not connected");
+                return;
+            }
+            
+            Send(SendOption.Reliable, MessageTags.PlayerChat, message);
+        }
+
+        private void Send(SendOption option, MessageTags tag, string message = null)
+        {
+            var msg = MessageWriter.Get(option);
+            msg.StartMessage((byte)tag);
+            if (message != null)
+            {
+                msg.Write(message);
+            }
+
             msg.EndMessage();
 
             try
@@ -102,85 +155,7 @@ namespace UnityClient
             }
             catch(Exception e)
             {
-                Debug.Log($"[ERROR] Caught exception in LogIn for connection {_networkManager.Connection.EndPoint.Address}");
-                Debug.Log($"[EXCEPTION] {e.Message}");
-            }
-            msg.Recycle();
-        }
-
-        private void ServerLoginResponse(MessageReader msg)
-        {
-            Debug.Log($"[INFO] Login success");
-            _networkManager.LoggedIn = true;
-        }
-
-        private void ServerLoginFailure(MessageReader msg)
-        {
-            Debug.Log($"[ERROR] login failed with error: {msg.ReadString()}");
-            _networkManager.LoggedIn = false;
-            //TODO boot to login screen
-            UIMenuBehavior.Instance.ConnectionLost(msg.ReadString());
-        }
-
-        private void HandleServerMessage(MessageReader msg)
-        {
-            Debug.Log($"Received Server Message: {msg.ReadString()}");
-        }
-        
-        //TODO extract below methods to appropriate class
-        public void SendConsoleToServer(string message)
-        {
-            if (!_networkManager.IsConnected())
-            {
-                Debug.Log("[ERROR] you can't send commands to the server if you're not connected");
-                return;
-            }
-
-            if (message.Length == 0)
-            {
-                return;
-            }
-            
-            Debug.Log($"[DEBUG] sending console message to server: \"{message}\"");
-            var msg = MessageWriter.Get(SendOption.Reliable);
-            msg.StartMessage((byte)MessageTags.ConsoleMessage);
-            msg.Write(message);
-            
-            msg.EndMessage();
-
-            try
-            {
-                _networkManager.Connection.Send(msg);
-            }
-            catch(Exception e)
-            {
-                Debug.Log($"[ERROR] Caught exception in console message send");
-                Debug.Log($"[EXCEPTION] {e.Message}");
-            }
-            msg.Recycle();
-        }
-
-        public void PlayerChat(string message)
-        {
-            if (!_networkManager.IsConnected())
-            {
-                Debug.Log("[ERROR] you can't chat if you're not connected");
-                return;
-            }
-            
-            var msg = MessageWriter.Get(SendOption.Reliable);
-            msg.StartMessage((byte)MessageTags.PlayerChat);
-            msg.Write(message);
-            
-            msg.EndMessage();
-
-            try
-            {
-                _networkManager.Connection.Send(msg);
-            }
-            catch(Exception e)
-            {
-                Debug.Log($"[ERROR] Caught exception in chat message send");
+                Debug.Log($"[ERROR] Caught exception in SendReliable for connection {_networkManager.Connection.EndPoint.Address}");
                 Debug.Log($"[EXCEPTION] {e.Message}");
             }
             msg.Recycle();
