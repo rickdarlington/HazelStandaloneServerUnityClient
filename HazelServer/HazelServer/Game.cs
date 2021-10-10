@@ -7,9 +7,6 @@ namespace HazelServer
 {
     internal class Game
     {
-        private static int GameCounter = 0;
-        public readonly int id = 333;
-
         private List<Player> _playerList = new();
         
         private static Game instance;

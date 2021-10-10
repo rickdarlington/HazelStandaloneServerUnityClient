@@ -11,9 +11,6 @@ namespace UnityClient
 
     internal class HazelNetworkManager : MonoBehaviour
     {
-        //TODO we can optimize by removing this, as we only have one "game" running at a time
-        private const int _gameId = 333;
-        
         private static HazelNetworkManager instance;
         public static HazelNetworkManager Instance => instance;
         public readonly IPAddress ServerAddress = IPAddress.Loopback;
@@ -85,11 +82,7 @@ namespace UnityClient
             {
                 try
                 {
-                    //TODO we can remove GameId here, as we only have one game running at a time
-                    // Right now:
-                    // 7 = Tag (1) + MessageLength (2) + GameId (4)
-                    // Ideally, no magic calculation, just msg.HasMessages
-                    if (!msg.HasBytes(7)) continue;
+                    if (!msg.HasBytes(3)) continue;
                     msg.EndMessage();
 
                     Connection.Send(msg);
@@ -101,7 +94,6 @@ namespace UnityClient
 
                 msg.Clear(msg.SendOption);
                 msg.StartMessage((byte)MessageTags.GameData);
-                msg.Write(_gameId);
             }
         }
 
@@ -126,7 +118,6 @@ namespace UnityClient
                 var stream = _streams[i];
                 stream.Clear((SendOption)i);
                 stream.StartMessage((byte)MessageTags.GameData);
-                stream.Write(_gameId);
             }
 
             Connection = new UdpClientConnection(new IPEndPoint(ServerAddress, ServerPort));
