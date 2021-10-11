@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using Hazel;
 
 namespace HazelServer
 {
@@ -18,7 +19,7 @@ namespace HazelServer
                 long startTimeMS = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
 
                 //UpdatePlayerPositions(_game);
-                //SendPlayerStateDataUpdates();
+                SendPlayerStateDataUpdates();
                 
                 long finishTimeMS = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
                 long elapsedTimeMS = finishTimeMS - startTimeMS;
@@ -31,6 +32,18 @@ namespace HazelServer
                 else
                 {
                     Console.WriteLine($"Position update took longer ({elapsedTimeMS}) than tick {tickRate}");
+                }
+            }
+        }
+
+        private void SendPlayerStateDataUpdates()
+        {
+            var pl = Game.Instance.PlayerList;
+            lock (pl)
+            {
+                foreach (var player in pl)
+                {
+                    player.Send(SendOption.None, );
                 }
             }
         }

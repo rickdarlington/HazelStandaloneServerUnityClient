@@ -44,11 +44,11 @@ namespace HazelServer
                             Console.WriteLine($"{DateTime.UtcNow} [TRACE] \"{playerName}\" is trying to log in");
                             if (LogIn(playerName))
                             {
-                                SendReliable(MessageTags.LoginSuccess, null);
+                                Send(SendOption.Reliable, MessageTags.LoginSuccess, null);
                             }
                             else
                             {
-                                SendReliable(MessageTags.LoginFailed, $"{playerName} is already logged in!");
+                                Send(SendOption.Reliable, MessageTags.LoginFailed, $"{playerName} is already logged in!");
                             }
 
                             break;
@@ -104,9 +104,9 @@ namespace HazelServer
         
         //TODO how do we genericize this?  we want to send errors with strings, but sometimes just tags.  we don't 
         //really want to keep track on both client and server whether we can read the error string from the message
-        public void SendReliable(MessageTags tag, string messageString)
+        public void Send(SendOption option, MessageTags tag, string messageString)
         {
-            var msg = MessageWriter.Get(SendOption.Reliable);
+            var msg = MessageWriter.Get(option);
             msg.StartMessage((byte)tag);
 
             if (messageString != null)

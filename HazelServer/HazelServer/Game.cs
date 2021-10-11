@@ -7,7 +7,7 @@ namespace HazelServer
 {
     internal class Game
     {
-        private List<Player> _playerList = new();
+        public List<Player> PlayerList = new();
         
         private static Game instance;
 
@@ -28,16 +28,16 @@ namespace HazelServer
         
         public int PlayerCount()
         {
-            return _playerList.Count;
+            return PlayerList.Count;
         }
 
         //TODO optimize, maybe use a dictionary/etc for getting player by name
         public Player GetPlayerByName(string name)
         {
             Player p = null;
-            lock (_playerList)
+            lock (PlayerList)
             {
-                foreach (var player in _playerList)
+                foreach (var player in PlayerList)
                 {
                     if (player.name == name)
                     {
@@ -53,9 +53,9 @@ namespace HazelServer
         //TODO for class: combine all try/connection.send/recycle calls
         public void AddPlayer(Player newPlayer)
         {
-            lock (_playerList)
+            lock (PlayerList)
             {
-                _playerList.Add(newPlayer);
+                PlayerList.Add(newPlayer);
             }
             
             Console.WriteLine($"{DateTime.UtcNow} [DEBUG] adding player with id: {newPlayer.id}");
@@ -82,18 +82,18 @@ namespace HazelServer
         public void removePlayer(Player p)
         {
             Console.WriteLine($"{DateTime.UtcNow} [DEBUG] player {p.id} removed");
-            lock (_playerList)
+            lock (PlayerList)
             {
-                _playerList.Remove(p);
+                PlayerList.Remove(p);
             }
         }
 
         public void ProcessPlayerInputs()
         {
             //TODO implement me
-            lock (_playerList)
+            lock (PlayerList)
             {
-                foreach (var player in _playerList)
+                foreach (var player in PlayerList)
                 {
                     try
                     {
@@ -111,9 +111,9 @@ namespace HazelServer
         public void SendPlayerPositionUpdate()
         {
             //TODO implement better locking
-            lock (_playerList)
+            lock (PlayerList)
             {
-                foreach (var player in _playerList)
+                foreach (var player in PlayerList)
                 {
                     var msg = MessageWriter.Get();
                     
@@ -141,9 +141,9 @@ namespace HazelServer
             //TODO implement better locking
             // It's possible to create this method entirely lock-free, but too tricky 
             // for this example! Even a ReaderWriterLockSlim would be an improvement.
-            lock (_playerList)
+            lock (PlayerList)
             {
-                foreach (var player in _playerList)
+                foreach (var player in PlayerList)
                 {
                     try
                     {
