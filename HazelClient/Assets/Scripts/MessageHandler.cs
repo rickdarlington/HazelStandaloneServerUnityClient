@@ -1,6 +1,7 @@
 using System;
 using Hazel;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace UnityClient
 {
@@ -53,6 +54,9 @@ namespace UnityClient
                         case MessageTags.ServerMessage:
                             HandleServerMessage(msg);
                             break;
+                        case MessageTags.GameData:
+                            ReceiveGameData(msg);
+                            break;
 
                         //TODO implement the rest eg:
                         //case PlayerMessageTags.PlayerJoined:
@@ -100,6 +104,13 @@ namespace UnityClient
         private void HandleServerMessage(MessageReader msg)
         {
             Debug.Log($"Received Server Message: {msg.ReadString()}");
+        }
+
+        private void ReceiveGameData(MessageReader msg)
+        {
+            
+            //TODO implement me fr
+            Debug.Log($"[TRACE] received game data packet: {msg.Tag.ToString()}");
         }
         
         public void SendConsoleToServer(string message)

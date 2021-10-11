@@ -88,54 +88,6 @@ namespace HazelServer
             }
         }
 
-        public void ProcessPlayerInputs()
-        {
-            //TODO implement me
-            lock (PlayerList)
-            {
-                foreach (var player in PlayerList)
-                {
-                    try
-                    {
-                        player.position.X += 0.01f;
-                        player.position.Y += 0.01f;
-                    }
-                    catch
-                    {
-                        Console.WriteLine($"{DateTime.UtcNow} [ERROR] error processing inputs for player {player.id}");
-                    }
-                }
-            }
-        }
-
-        public void SendPlayerPositionUpdate()
-        {
-            //TODO implement better locking
-            lock (PlayerList)
-            {
-                foreach (var player in PlayerList)
-                {
-                    var msg = MessageWriter.Get();
-                    
-                    try
-                    {
-                        //these should be sent all together as gamedata?
-                        //msg.StartMessage((byte)MessageTags.GameData);
-                        //msg.Write();
-                        //player.connection.Send(msg);
-                    }
-                    catch
-                    {
-                        Console.WriteLine($"{DateTime.UtcNow} [ERROR] error in GameData.Broadcast()");
-                        //TODO handle "can't send to player" case
-                        // Maybe you want to disconnect the player if you can't send?
-                    }
-                    
-                    msg.Recycle();
-                }
-            }
-        }
-
         public void Broadcast(MessageWriter msg)
         {
             //TODO implement better locking
@@ -148,7 +100,6 @@ namespace HazelServer
                     try
                     {
                         player.connection.Send(msg);
-                        
                     }
                     catch
                     {

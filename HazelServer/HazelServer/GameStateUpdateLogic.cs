@@ -43,7 +43,29 @@ namespace HazelServer
             {
                 foreach (var player in pl)
                 {
-                    player.Send(SendOption.None, );
+                    var msg = MessageWriter.Get();
+                    msg.StartMessage((byte)MessageTags.GameData);
+                    
+                    try
+                    {
+                        //TODO broadcast also locks on PlayerList.  Can't do this in this way.
+                        //Game.Instance.Broadcast(msg);
+                        
+                        //How should we actually be doing this?  all positions in one message?
+                        //This will eventually break MTU in crowded areas.  All positions as
+                        //separate messages?  seems like that could make reconciliation and interpolation
+                        //really obnoxious to reconstruct later
+                        
+                    }
+                    catch
+                    {
+                        Console.WriteLine($"{DateTime.UtcNow} [ERROR] Error in Player.Send()");
+                    }
+                    finally
+                    {
+                        msg.Recycle();
+                    }
+                    
                 }
             }
         }
