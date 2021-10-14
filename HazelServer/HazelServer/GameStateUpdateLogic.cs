@@ -8,6 +8,8 @@ namespace HazelServer
 {
     public class GameStateUpdateLogic
     {
+        public uint ServerTick { get; private set; } = 0;
+        
         public void thread()
         {
             Console.WriteLine($"{DateTime.UtcNow} [START] Starting game update loop");
@@ -16,6 +18,8 @@ namespace HazelServer
             int dt = 0;
             while (true)
             {
+                ServerTick++;
+                
                 //Console.WriteLine($"{DateTime.UtcNow} [TRACE] game state update");
 
                 long startTimeMS = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
@@ -65,6 +69,7 @@ namespace HazelServer
             var msg = MessageWriter.Get();
             msg.StartMessage((byte)MessageTags.GameData);
             msg.WritePacked(l);
+            msg.WritePacked(ServerTick);
 
             foreach (PositionPacket position in positions)
             {

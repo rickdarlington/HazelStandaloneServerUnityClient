@@ -107,7 +107,10 @@ namespace UnityClient
 
         private void ReceiveGameData(MessageReader msg)
         {
+            //TODO we should move this processing to a queue so that we can have update handle it
             var updates = msg.ReadPackedUInt32();
+            var serverTick = msg.ReadPackedUInt32();
+            
             Debug.Log($"Processing ({updates}) updates.");
 
             
@@ -117,7 +120,7 @@ namespace UnityClient
                 PositionPacket packet = new PositionPacket(msg.ReadPackedUInt32(), msg.ReadSingle(), msg.ReadSingle(),
                     msg.ReadPackedUInt32());
                 
-                Debug.Log($"Player ({packet.playerId}) Position: {packet.X} x {packet.Y} updates.");
+                Debug.Log($"Update at server tick: {serverTick} for player ({packet.playerId}) Position: {packet.X} {packet.Y}");
 
                 i++;
             }
