@@ -60,7 +60,6 @@ namespace UnityClient
 
                         //TODO implement the rest eg:
                         //case PlayerMessageTags.PlayerJoined:
-                        //case PlayerMessageTags.GameData (etc)
 
                         default:
                             Debug.Log($"[DEBUG] unhandled message type [{msg.Tag}]");
@@ -108,9 +107,20 @@ namespace UnityClient
 
         private void ReceiveGameData(MessageReader msg)
         {
+            var updates = msg.ReadPackedUInt32();
+            Debug.Log($"Processing ({updates}) updates.");
+
             
-            //TODO implement me fr
-            Debug.Log($"[TRACE] received game data packet: {msg.Tag.ToString()}");
+            var i = 0;
+            while (i < updates+1)
+            {
+                PositionPacket packet = new PositionPacket(msg.ReadPackedUInt32(), msg.ReadSingle(), msg.ReadSingle(),
+                    msg.ReadPackedUInt32());
+                
+                Debug.Log($"Player ({packet.playerId}) Position: {packet.X} x {packet.Y} updates.");
+
+                i++;
+            }
         }
         
         public void SendConsoleToServer(string message)

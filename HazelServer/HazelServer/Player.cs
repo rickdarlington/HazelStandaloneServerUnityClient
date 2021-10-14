@@ -7,19 +7,21 @@ namespace HazelServer
 {
     internal class Player
     {
-        public readonly int id; 
+        public readonly uint id; 
         public readonly Connection connection;
 
         private static int _playerCounter = 0;
-        public Vector2 position = new Vector2(0, 0);
-
-        private bool loggedIn = false;
+        
+        public Vector2 Position = new Vector2(0, 0);
+        public uint lookDirection = 0;
+        
+        public bool LoggedIn { get; private set; }= false;
         public String name { get; private set; }
 
         public Player(Connection c)
         {
             connection = c;
-            id = Interlocked.Increment(ref _playerCounter);
+            id = (uint)Interlocked.Increment(ref _playerCounter);
         }
 
         public void HandleMessage(DataReceivedEventArgs obj)
@@ -50,7 +52,6 @@ namespace HazelServer
                             {
                                 Send(SendOption.Reliable, MessageTags.LoginFailed, $"{playerName} is already logged in!");
                             }
-
                             break;
                         case MessageTags.ConsoleMessage:
                             //TODO do something with console commands
@@ -92,6 +93,7 @@ namespace HazelServer
             {
                 this.name = name;
                 Console.WriteLine($"{DateTime.UtcNow} [DEBUG] \"{name}\" logged in successfully");
+                this.LoggedIn = true;
                 return true;
             }
             else

@@ -97,6 +97,11 @@ namespace HazelServer
             {
                 foreach (var player in PlayerList)
                 {
+                    if (!player.LoggedIn)
+                    {
+                        continue;
+                    }
+                    
                     try
                     {
                         player.connection.Send(msg);
