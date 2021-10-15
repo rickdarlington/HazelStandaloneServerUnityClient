@@ -9,6 +9,7 @@ namespace UnityClient
         ServerMessage,  // 4 
         GameData,       // 5
         ConsoleMessage, // 6
+        PlayerInput,    // 7
         PlayerChat
     }
 }

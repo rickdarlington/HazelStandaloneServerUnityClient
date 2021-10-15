@@ -7,24 +7,17 @@ namespace UnityClient
 {
     public class PlayerInputBehaviour : MonoBehaviour
     {
-        private HazelNetworkManager _networkManager;
-        
-        private void Awake()
-        {
-            _networkManager = HazelNetworkManager.Instance;    
-        }
 
         private void FixedUpdate()
         {
-            if (!_networkManager.LoggedIn)
-            {
-                return;
-            }
+            bool[] inputs = new bool[4];
+            inputs[0] = Keyboard.current.wKey.isPressed;
+            inputs[1] = Keyboard.current.aKey.isPressed;
+            inputs[2] = Keyboard.current.sKey.isPressed;
+            inputs[3] = Keyboard.current.dKey.isPressed;
+            //inputs[4] = Keyboard.current.wKey.isPressed
             
-            if (Keyboard.current.wKey.isPressed)
-            {
-                Debug.Log("up");
-            }
+            //_messageHandler.SendReliableInput(inputs);            
         }
     }
 }

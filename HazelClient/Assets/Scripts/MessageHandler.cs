@@ -75,10 +75,10 @@ namespace UnityClient
         {
             int myId = reader.ReadInt32();
             Debug.Log($"[INFO] connected to server with player id: {myId}");
-            _networkManager.PlayerId = myId;
+            //HazelNetworkManager.Instance.PlayerId = myId;
 
             //TODO this is where you want to send your login information
-            Debug.Log($"[DEBUG] sending log in message for {_networkManager.PlayerName}");
+            //Debug.Log($"[DEBUG] sending log in message for {_networkManager.PlayerName}");
             Send(SendOption.Reliable, MessageTags.LogIn, _networkManager.PlayerName);
         }
 
@@ -178,6 +178,34 @@ namespace UnityClient
             catch(Exception e)
             {
                 Debug.Log($"[ERROR] Caught exception in SendReliable for connection {_networkManager.Connection.EndPoint.Address}");
+                Debug.Log($"[EXCEPTION] {e.Message}");
+            }
+            msg.Recycle();
+        }
+
+        public void SendReliableInput(bool[] input)
+        {
+            if (!_networkManager.LoggedIn)
+            {
+                return;
+            }
+            
+            var msg = MessageWriter.Get(SendOption.Reliable);
+            msg.StartMessage((byte)MessageTags.PlayerInput);
+            //TODO write the input bool[]
+            msg.Write(input[0]);
+            msg.Write(input[1]);
+            msg.Write(input[2]);
+            msg.Write(input[3]);
+            msg.EndMessage();
+
+            try
+            {
+                _networkManager.Connection.Send(msg);
+            }
+            catch(Exception e)
+            {
+                Debug.Log($"[ERROR] Caught exception in SendInput");
                 Debug.Log($"[EXCEPTION] {e.Message}");
             }
             msg.Recycle();

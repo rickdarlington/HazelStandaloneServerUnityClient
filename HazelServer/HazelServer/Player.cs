@@ -61,6 +61,9 @@ namespace HazelServer
                             //TODO implement player chat (send message to all other players?)
                             Console.WriteLine($"{DateTime.UtcNow} [INBOUND] chat message from player \"{name}\": {msg.ReadString()}");
                             break;
+                        case MessageTags.PlayerInput:
+                            ProcessInput(msg);
+                            break;
                         default:
                             Console.WriteLine($"{DateTime.UtcNow} [ERROR] unhandled message type [{msg.Tag}]");
                             break;
@@ -102,7 +105,12 @@ namespace HazelServer
                 return false;
             }
         }
-        
+
+        private void ProcessInput(MessageReader msg)
+        {
+            bool[] input = new[] { msg.ReadBoolean(), msg.ReadBoolean(), msg.ReadBoolean(), msg.ReadBoolean() };
+            Console.WriteLine($"{DateTime.UtcNow} [TRACE] player input: {input}");
+        }
         
         //TODO how do we genericize this?  we want to send errors with strings, but sometimes just tags.  we don't 
         //really want to keep track on both client and server whether we can read the error string from the message
