@@ -75,10 +75,10 @@ namespace UnityClient
         {
             int myId = reader.ReadInt32();
             Debug.Log($"[INFO] connected to server with player id: {myId}");
-            //HazelNetworkManager.Instance.PlayerId = myId;
+            HazelNetworkManager.Instance.PlayerId = myId;
 
             //TODO this is where you want to send your login information
-            //Debug.Log($"[DEBUG] sending log in message for {_networkManager.PlayerName}");
+            Debug.Log($"[DEBUG] sending log in message for {_networkManager.PlayerName}");
             Send(SendOption.Reliable, MessageTags.LogIn, _networkManager.PlayerName);
         }
 

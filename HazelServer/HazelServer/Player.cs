@@ -37,8 +37,6 @@ namespace HazelServer
                     var msg = obj.Message.ReadMessage();
                     var tag = (MessageTags)msg.Tag;
 
-                    Console.WriteLine($"{DateTime.UtcNow} [TRACE] HandleMessage: {tag.ToString()}");
-
                     switch (tag)
                     {
                         case MessageTags.LogIn:
@@ -109,7 +107,7 @@ namespace HazelServer
         private void ProcessInput(MessageReader msg)
         {
             bool[] input = new[] { msg.ReadBoolean(), msg.ReadBoolean(), msg.ReadBoolean(), msg.ReadBoolean() };
-            Console.WriteLine($"{DateTime.UtcNow} [TRACE] player input: {input}");
+            Console.WriteLine($"{DateTime.UtcNow} [TRACE] player input: {input[0]} {input[1]} {input[2]} {input[3]}");
         }
         
         //TODO how do we genericize this?  we want to send errors with strings, but sometimes just tags.  we don't 
