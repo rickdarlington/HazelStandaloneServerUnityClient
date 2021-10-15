@@ -35,7 +35,8 @@ namespace UnityClient
         
         public bool ConnectInProgress { get; private set; } = false;
 
-        public string PlayerName { get; private set; } = "nobody"; 
+        public string PlayerName { get; private set; } = "nobody";
+        public int PlayerId = 0;
 
         private void Awake()
         {
@@ -85,6 +86,7 @@ namespace UnityClient
                     if (!msg.HasBytes(3)) continue;
                     msg.EndMessage();
 
+                    Debug.Log("sending");
                     Connection.Send(msg);
                 }
                 catch 

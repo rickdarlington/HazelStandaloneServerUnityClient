@@ -39,7 +39,6 @@ namespace UnityClient
                     // they share the parent message's buffer. So don't recycle them!
                     var msg = obj.Message.ReadMessage();
 
-                    Debug.Log($"[TRACE] message type [{(MessageTags)msg.Tag}]");
                     switch ((MessageTags)msg.Tag)
                     {
                         case MessageTags.ServerInit:
@@ -57,10 +56,6 @@ namespace UnityClient
                         case MessageTags.GameData:
                             ReceiveGameData(msg);
                             break;
-
-                        //TODO implement the rest eg:
-                        //case PlayerMessageTags.PlayerJoined:
-
                         default:
                             Debug.Log($"[DEBUG] unhandled message type [{msg.Tag}]");
                             break;
@@ -81,6 +76,7 @@ namespace UnityClient
         {
             int myId = reader.ReadInt32();
             Debug.Log($"[INFO] connected to server with player id: {myId}");
+            _networkManager.PlayerId = myId;
 
             //TODO this is where you want to send your login information
             Debug.Log($"[DEBUG] sending log in message for {_networkManager.PlayerName}");
@@ -107,20 +103,22 @@ namespace UnityClient
 
         private void ReceiveGameData(MessageReader msg)
         {
-            //TODO we should move this processing to a queue so that we can have update handle it
             var updates = msg.ReadPackedUInt32();
             var serverTick = msg.ReadPackedUInt32();
             
-            Debug.Log($"Processing ({updates}) updates.");
-
+            //Debug.Log($"Processing ({updates+1}) update(s).");
             
             var i = 0;
             while (i < updates+1)
             {
+                //TODO put these "packets" into a queue or something for processing by Update()
                 PositionPacket packet = new PositionPacket(msg.ReadPackedUInt32(), msg.ReadSingle(), msg.ReadSingle(),
                     msg.ReadPackedUInt32());
-                
-                Debug.Log($"Update at server tick: {serverTick} for player ({packet.playerId}) Position: {packet.X} {packet.Y}");
+
+                if (packet.playerId == _networkManager.PlayerId)
+                {
+                    Debug.Log($"Server tick: {serverTick} player: {packet.playerId} position: {packet.X} . {packet.Y}");
+                }
 
                 i++;
             }

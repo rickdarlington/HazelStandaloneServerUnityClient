@@ -63,7 +63,7 @@ namespace HazelServer
 
         private void SendPlayerStateDataUpdates(PositionPacket[] positions)
         {
-
+            //TODO probably AOI at least 
             var l = positions.Length / 4;
             
             var msg = MessageWriter.Get();
