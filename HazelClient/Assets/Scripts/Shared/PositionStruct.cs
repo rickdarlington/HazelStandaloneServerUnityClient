@@ -1,13 +1,13 @@
-namespace HazelServer
+namespace UnityClient
 {
-    public class PositionPacket
+    public struct PositionStruct
     {
         public readonly uint playerId;
         public readonly float X;
         public readonly float Y;
         public readonly uint lookDirection;
 
-        public PositionPacket(uint p, float x, float y, uint l)
+        public PositionStruct(uint p, float x, float y, uint l)
         {
             playerId = p;
             X = x;

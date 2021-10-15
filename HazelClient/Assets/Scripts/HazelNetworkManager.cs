@@ -85,8 +85,6 @@ namespace UnityClient
                 {
                     if (!msg.HasBytes(3)) continue;
                     msg.EndMessage();
-
-                    Debug.Log("sending");
                     Connection.Send(msg);
                 }
                 catch 

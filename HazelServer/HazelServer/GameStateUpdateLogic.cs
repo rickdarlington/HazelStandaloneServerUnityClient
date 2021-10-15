@@ -24,7 +24,7 @@ namespace HazelServer
 
                 long startTimeMS = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
 
-                PositionPacket[] positions = UpdatePlayerPositions();
+                PositionStruct[] positions = UpdatePlayerPositions();
                 SendPlayerStateDataUpdates(positions);
                 
                 long finishTimeMS = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
@@ -42,10 +42,10 @@ namespace HazelServer
             }
         }
 
-        private PositionPacket[] UpdatePlayerPositions()
+        private PositionStruct[] UpdatePlayerPositions()
         {
             var pl = Game.Instance.PlayerList;
-            PositionPacket[] positions = new PositionPacket[pl.Count];
+            PositionStruct[] positions = new PositionStruct[pl.Count];
             
             int i = 0;
             lock (pl)
@@ -53,7 +53,7 @@ namespace HazelServer
                 foreach (var player in pl)
                 {
                     //compute new player position
-                    positions[i] = new PositionPacket(player.id, player.Position.X, player.Position.Y, player.lookDirection);
+                    positions[i] = new PositionStruct(player.id, player.Position.X, player.Position.Y, player.lookDirection);
                     i++;
                 }
             }
@@ -61,7 +61,7 @@ namespace HazelServer
             return positions;
         }
 
-        private void SendPlayerStateDataUpdates(PositionPacket[] positions)
+        private void SendPlayerStateDataUpdates(PositionStruct[] positions)
         {
             //TODO probably AOI at least 
             var l = positions.Length / 4;
@@ -71,7 +71,7 @@ namespace HazelServer
             msg.WritePacked(l);
             msg.WritePacked(ServerTick);
 
-            foreach (PositionPacket position in positions)
+            foreach (PositionStruct position in positions)
             {
                 msg.WritePacked(position.playerId);
                 msg.Write(position.X);
@@ -81,10 +81,11 @@ namespace HazelServer
             
             msg.EndMessage();
 
-            if (msg.Length > 8)
+            //TODO uncomment to monitor message length for position updates (will get scrolly)
+            /*if (msg.Length > 8)
             {
                 Console.WriteLine($"{DateTime.UtcNow} [TRACE] position message length: {msg.Length}");
-            }
+            }*/
 
             Game.Instance.Broadcast(msg);
         }

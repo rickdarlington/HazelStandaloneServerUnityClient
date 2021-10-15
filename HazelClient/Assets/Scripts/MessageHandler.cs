@@ -1,7 +1,6 @@
 using System;
 using Hazel;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace UnityClient
 {
@@ -112,12 +111,13 @@ namespace UnityClient
             while (i < updates+1)
             {
                 //TODO put these "packets" into a queue or something for processing by Update()
-                PositionPacket packet = new PositionPacket(msg.ReadPackedUInt32(), msg.ReadSingle(), msg.ReadSingle(),
+                PositionStruct @struct = new PositionStruct(msg.ReadPackedUInt32(), msg.ReadSingle(), msg.ReadSingle(),
                     msg.ReadPackedUInt32());
 
-                if (packet.playerId == _networkManager.PlayerId)
+                if (@struct.playerId == _networkManager.PlayerId)
                 {
-                    Debug.Log($"Server tick: {serverTick} player: {packet.playerId} position: {packet.X} . {packet.Y}");
+                    //TODO uncomment to see my player's position packets as they come in
+                    //Debug.Log($"Server tick: {serverTick} player: {packet.playerId} position: {packet.X} . {packet.Y}");
                 }
 
                 i++;
