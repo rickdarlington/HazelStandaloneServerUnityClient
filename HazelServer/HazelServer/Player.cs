@@ -137,7 +137,6 @@ namespace HazelServer
             //TODO check if player is sending "too many" inputs.  eg. more than they could actually generate at the fixedupdate rate
             // fixedUpdate only allows for sending 6 inputs per fixedUpdate tick, but these might have been delayed/etc
             
-            Console.WriteLine($"applying {_playerInputs.Count} inputs");
             int i = 0;
             int toProcessCount = _playerInputs.Count;
 
