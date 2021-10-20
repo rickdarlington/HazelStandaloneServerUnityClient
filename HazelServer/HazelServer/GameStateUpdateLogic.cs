@@ -52,8 +52,10 @@ namespace HazelServer
             {
                 foreach (var player in pl)
                 {
-                    //compute new player position
-                    positions[i] = new PositionStruct(player.id, player.Position.X, player.Position.Y, player.lookDirection);
+                    //TODO actually compute new player position!
+                    
+                    //TODO see todo in PositionStruct: don't send lastProcessedInput to everyone
+                    positions[i] = new PositionStruct(player.id, player.LastProcessedInput, player.Position.X, player.Position.Y, player.lookDirection);
                     i++;
                 }
             }
@@ -74,6 +76,7 @@ namespace HazelServer
             foreach (PositionStruct position in positions)
             {
                 msg.WritePacked(position.playerId);
+                msg.WritePacked(position.lastProcessedInput);
                 msg.Write(position.X);
                 msg.Write(position.Y);
                 msg.WritePacked(position.lookDirection);

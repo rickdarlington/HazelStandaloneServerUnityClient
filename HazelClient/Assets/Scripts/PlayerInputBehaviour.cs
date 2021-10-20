@@ -8,9 +8,12 @@ namespace UnityClient
 {
     public class PlayerInputBehaviour : MonoBehaviour
     {
+        private uint inputSequenceNumber = 0;
 
         private void FixedUpdate()
         {
+            //FixedUpdate is bound to 0.01666667 in Unity>Edit>Project Settings>Time>Fixed Timestep
+            
             //TODO refactor
             HazelNetworkManager _manager = HazelNetworkManager.Instance;
 
@@ -28,7 +31,8 @@ namespace UnityClient
 
             if (inputs.Contains(true))
             {
-                MessageHandler.Instance.SendReliableInput(inputs);    
+                MessageHandler.Instance.SendReliableInput(inputSequenceNumber, inputs);
+                inputSequenceNumber++;
             }
         }
     }

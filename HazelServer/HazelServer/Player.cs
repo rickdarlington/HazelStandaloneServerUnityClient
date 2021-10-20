@@ -18,6 +18,8 @@ namespace HazelServer
         public bool LoggedIn { get; private set; }= false;
         public String name { get; private set; }
 
+        public uint LastProcessedInput { get; private set; } = 0;
+
         public Player(Connection c)
         {
             connection = c;
@@ -106,8 +108,22 @@ namespace HazelServer
 
         private void ProcessInput(MessageReader msg)
         {
+            uint sequenceNumber = msg.ReadPackedUInt32();
             bool[] input = new[] { msg.ReadBoolean(), msg.ReadBoolean(), msg.ReadBoolean(), msg.ReadBoolean() };
-            Console.WriteLine($"{DateTime.UtcNow} [TRACE] player input: {input[0]} {input[1]} {input[2]} {input[3]}");
+            
+            //TODO move player code goes here.
+
+            if (sequenceNumber > LastProcessedInput)
+            {
+                LastProcessedInput = sequenceNumber;
+            }
+            else
+            {
+                //TODO we should never get here since inputs are sent reliably.  this is more of an indicator to investigate
+                Console.WriteLine($"{DateTime.UtcNow} [TRACE] processing out of order player input {sequenceNumber} > {LastProcessedInput}");    
+            }
+
+            Console.WriteLine($"{DateTime.UtcNow} [TRACE] player input ({sequenceNumber}): {input[0]} {input[1]} {input[2]} {input[3]}");
         }
         
         //TODO how do we genericize this?  we want to send errors with strings, but sometimes just tags.  we don't 

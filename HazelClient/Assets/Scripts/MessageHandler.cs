@@ -1,5 +1,6 @@
 using System;
 using Hazel;
+using HazelServer;
 using UnityEngine;
 
 namespace UnityClient
@@ -111,13 +112,13 @@ namespace UnityClient
             while (i < updates+1)
             {
                 //TODO put these "packets" into a queue or something for processing by Update()
-                PositionStruct @struct = new PositionStruct(msg.ReadPackedUInt32(), msg.ReadSingle(), msg.ReadSingle(),
+                PositionStruct pos = new PositionStruct(msg.ReadPackedUInt32(), msg.ReadPackedUInt32(), msg.ReadSingle(), msg.ReadSingle(),
                     msg.ReadPackedUInt32());
 
-                if (@struct.playerId == _networkManager.PlayerId)
+                if (pos.playerId == _networkManager.PlayerId)
                 {
                     //TODO uncomment to see my player's position packets as they come in
-                    //Debug.Log($"Server tick: {serverTick} player: {packet.playerId} position: {packet.X} . {packet.Y}");
+                    Debug.Log($"Server tick: {serverTick} player: {pos.playerId} last input: {pos.lastProcessedInput} position: {pos.X} . {pos.Y}");
                 }
 
                 i++;
@@ -183,7 +184,7 @@ namespace UnityClient
             msg.Recycle();
         }
 
-        public void SendReliableInput(bool[] input)
+        public void SendReliableInput(uint inputSequenceNumber, bool[] input)
         {
             if (!_networkManager.LoggedIn)
             {
@@ -192,7 +193,7 @@ namespace UnityClient
             
             var msg = MessageWriter.Get(SendOption.Reliable);
             msg.StartMessage((byte)MessageTags.PlayerInput);
-            //TODO write the input bool[]
+            msg.WritePacked(inputSequenceNumber);
             msg.Write(input[0]);
             msg.Write(input[1]);
             msg.Write(input[2]);

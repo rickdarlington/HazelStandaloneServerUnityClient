@@ -10,7 +10,8 @@ namespace HazelServer
         GameData,       // 5
         ConsoleMessage, // 6
         PlayerInput,    // 7
-        PlayerChat
+        PlayerChat,     // 8
+        PlayerOnlyUpdate// 9
     }
 }
 
