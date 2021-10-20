@@ -38,23 +38,26 @@ namespace UnityClient
                     // Remember from the server code that sub-messages aren't pooled,
                     // they share the parent message's buffer. So don't recycle them!
                     var msg = obj.Message.ReadMessage();
-
+                    
                     switch ((MessageTags)msg.Tag)
                     {
                         case MessageTags.ServerInit:
+                            Debug.Log($"[TRACE] HandleMessage:serverInit");
                             ServerInitResponse(msg);
                             break;
                         case MessageTags.LoginFailed:
-                            ServerLoginFailure(msg);
+                            Debug.Log($"[TRACE] HandleMessage:loginFailed");
+                            ServerLoginFailure(msg.ReadString());
                             break;
                         case MessageTags.LoginSuccess:
-                            ServerLoginResponse(msg);
+                            Debug.Log($"[TRACE] HandleMessage:LoginSuccess");
+                            ServerLoginResponse();
                             break;
                         case MessageTags.ServerMessage:
-                            HandleServerMessage(msg);
+                            if (_networkManager.LoggedIn) HandleServerMessage(msg);
                             break;
                         case MessageTags.GameData:
-                            ReceiveGameData(msg);
+                            if (_networkManager.LoggedIn) ReceiveGameData(msg);
                             break;
                         default:
                             Debug.Log($"[DEBUG] unhandled message type [{msg.Tag}]");
@@ -83,17 +86,17 @@ namespace UnityClient
             Send(SendOption.Reliable, MessageTags.LogIn, _networkManager.PlayerName);
         }
 
-        private void ServerLoginResponse(MessageReader msg)
+        private void ServerLoginResponse()
         {
             Debug.Log($"[INFO] Login success");
             _networkManager.LoggedIn = true;
         }
 
-        private void ServerLoginFailure(MessageReader msg)
+        private void ServerLoginFailure(String errorMessage)
         {
-            Debug.Log($"[ERROR] login failed with error: {msg.ReadString()}");
+            Debug.Log($"[ERROR] login failed with error: {errorMessage}");
             _networkManager.LoggedIn = false;
-            UIMenuBehavior.Instance.ConnectionLost(msg.ReadString());
+            _networkManager.AddEvent(_networkManager.serverDisconnectedAction);
         }
 
         private void HandleServerMessage(MessageReader msg)

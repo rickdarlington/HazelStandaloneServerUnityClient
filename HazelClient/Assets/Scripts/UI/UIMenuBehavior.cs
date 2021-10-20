@@ -49,14 +49,11 @@ namespace UnityClient
         private void ActivateMenu()
         {
             uiCanvas.SetActive(true);
-            if (HazelNetworkManager.Instance.IsConnected())
+            if (HazelNetworkManager.Instance.IsConnected() && HazelNetworkManager.Instance.LoggedIn)
             {
                 var netman = HazelNetworkManager.Instance;
                 playerNameInputField.interactable = false;
                 loginButton.interactable = false;
-                Debug.Log(netman.ServerAddress);
-                Debug.Log(netman.ServerPort);
-                Debug.Log(netman.PlayerName);
 
                 connectionStatusField.text = $"Connected to {netman.ServerAddress}:{netman.ServerPort} as {netman.PlayerName}";
             }
@@ -81,9 +78,11 @@ namespace UnityClient
             HazelNetworkManager.Instance.ConnectToServer(playerNameInputField.text);
         }
 
+        //FYI this can NOT be called directly, ONLY from the event system (so the main thread) 
         public void ConnectionLost(string message)
         {
             Debug.Log($"[ERROR] disconnected: {message}");
+            //TODO tell the player why this failed, don't just debug log.
             ActivateMenu();
         }
     }

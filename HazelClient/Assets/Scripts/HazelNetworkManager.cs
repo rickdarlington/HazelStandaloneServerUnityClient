@@ -141,10 +141,15 @@ namespace UnityClient
         private void HandleDisconnect(object sender, DisconnectedEventArgs e)
         {
             Debug.Log($"[INFO] server disconnected");
+            AddEvent(serverDisconnectedAction);
+        }
+
+        public void AddEvent(Action action)
+        {
             lock (eventQueue)
             {
                 eventQueue.Clear();
-                eventQueue.Add(serverDisconnected);
+                eventQueue.Add(action);
             }
         }
         
@@ -177,9 +182,13 @@ namespace UnityClient
         /// <summary>
         /// actions that need to be handled by the main thread
         /// </summary>
-        public Action serverDisconnected = () =>
+        public Action serverDisconnectedAction = () =>
         {
-            UIMenuBehavior.Instance.ConnectionLost("server connection lost");   
+            Instance.PlayerId = 0;
+            Instance.PlayerName = "nobody";
+            Instance.ConnectInProgress = false;
+            Instance.LoggedIn = false;
+            UIMenuBehavior.Instance.ConnectionLost("server connection lost");
         };
     }
 }
