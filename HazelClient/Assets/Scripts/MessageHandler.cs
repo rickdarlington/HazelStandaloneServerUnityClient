@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using Hazel;
 using HazelServer;
 using UnityEngine;
@@ -10,7 +12,7 @@ namespace UnityClient
         private readonly HazelNetworkManager _networkManager;
 
         private static MessageHandler instance = null;
-
+        
         private MessageHandler()
         {
             _networkManager = HazelNetworkManager.Instance;
@@ -31,6 +33,7 @@ namespace UnityClient
         
         public void HandleMessage(DataReceivedEventArgs obj)
         {
+            MessageTags tag = MessageTags.None;
             try
             {
                 while (obj.Message.Position < obj.Message.Length)
@@ -38,8 +41,9 @@ namespace UnityClient
                     // Remember from the server code that sub-messages aren't pooled,
                     // they share the parent message's buffer. So don't recycle them!
                     var msg = obj.Message.ReadMessage();
+                    tag = (MessageTags)msg.Tag;
                     
-                    switch ((MessageTags)msg.Tag)
+                    switch (tag)
                     {
                         case MessageTags.ServerInit:
                             Debug.Log($"[TRACE] HandleMessage:serverInit");
@@ -67,7 +71,7 @@ namespace UnityClient
             }
             catch (Exception e)
             {
-                Debug.Log($"[EXCEPTION] exception in MessageHandler.HandleMessage: {e.Message}");
+                Debug.Log($"[EXCEPTION] exception in MessageHandler.HandleMessage: {e.Message} for messageType {tag}");
             }
             finally
             {
@@ -108,24 +112,29 @@ namespace UnityClient
         {
             var updates = msg.ReadPackedUInt32();
             var serverTick = msg.ReadPackedUInt32();
-            
+            List<PositionStruct> positions = new List<PositionStruct>();
+
             //Debug.Log($"Processing ({updates+1}) update(s).");
-            
+
             var i = 0;
             while (i < updates+1)
             {
-                //TODO put these "packets" into a queue or something for processing by Update()
                 PositionStruct pos = new PositionStruct(msg.ReadPackedUInt32(), msg.ReadPackedUInt32(), msg.ReadSingle(), msg.ReadSingle(),
                     msg.ReadPackedUInt32());
 
-                if (pos.playerId == _networkManager.PlayerId)
-                {
-                    //TODO uncomment to see my player's position packets as they come in
-                    Debug.Log($"Server tick: {serverTick} player: {pos.playerId} last input: {pos.lastProcessedInput} position: {pos.X} . {pos.Y}");
-                }
+                positions.Add(pos);
+                //TODO uncomment to see my player's position packets as they come in
+                //if (pos.playerId == _networkManager.PlayerId)
+                //{
+                //    Debug.Log($"Server tick: {serverTick} player: {pos.playerId} last input: {pos.lastProcessedInput} position: {pos.X} . {pos.Y}");
+                //}
 
                 i++;
             }
+
+            var update = new GameUpdateStruct(updates, serverTick, positions);
+
+            GameStateManager.Instance.GameUpdates.Enqueue(update);
         }
         
         public void SendConsoleToServer(string message)

@@ -55,10 +55,12 @@
      <Compile Include="Assets\Scripts\HazelNetworkManager.cs" />
      <Compile Include="Assets\Scripts\Shared\MessageTags.cs" />
      <Compile Include="Assets\Scripts\UI\UIMenuBehavior.cs" />
-     <Compile Include="Assets\Scripts\Shared\PositionStruct.cs" />
      <Compile Include="Assets\Scripts\Utilities\ConsoleBehaviour.cs" />
      <Compile Include="Assets\Scripts\MessageHandler.cs" />
      <Compile Include="Assets\Scripts\PlayerInputBehaviour.cs" />
+     <Compile Include="Assets\Scripts\GameStateManager.cs" />
+     <Compile Include="Assets\Scripts\Shared\Structs.cs" />
+     <Compile Include="Assets\Scripts\Shared\Movement.cs" />
      <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
      <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Overlay.shader" />
      <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap.shader" />

@@ -3,6 +3,7 @@ using Hazel.Udp;
 using System;
 using System.Net;
 using System.Threading;
+using UnityClient;
 
 namespace HazelServer
 {

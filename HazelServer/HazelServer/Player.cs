@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Hazel;
 using System.Threading;
+using HazelServer.Shared;
+using UnityClient;
 
 namespace HazelServer
 {
@@ -19,6 +22,8 @@ namespace HazelServer
         public String name { get; private set; }
 
         public uint LastProcessedInput { get; private set; } = 0;
+
+        private Queue<PlayerInputStruct> _playerInputs = new Queue<PlayerInputStruct>();
 
         public Player(Connection c)
         {
@@ -62,7 +67,7 @@ namespace HazelServer
                             Console.WriteLine($"{DateTime.UtcNow} [INBOUND] chat message from player \"{name}\": {msg.ReadString()}");
                             break;
                         case MessageTags.PlayerInput:
-                            ProcessInput(msg);
+                            StoreInput(msg);
                             break;
                         default:
                             Console.WriteLine($"{DateTime.UtcNow} [ERROR] unhandled message type [{msg.Tag}]");
@@ -106,13 +111,13 @@ namespace HazelServer
             }
         }
 
-        private void ProcessInput(MessageReader msg)
+        private void StoreInput(MessageReader msg)
         {
             uint sequenceNumber = msg.ReadPackedUInt32();
             bool[] input = new[] { msg.ReadBoolean(), msg.ReadBoolean(), msg.ReadBoolean(), msg.ReadBoolean() };
             
-            //TODO move player code goes here.
-
+            _playerInputs.Enqueue(new PlayerInputStruct(sequenceNumber, input));
+            
             if (sequenceNumber > LastProcessedInput)
             {
                 LastProcessedInput = sequenceNumber;
@@ -124,6 +129,24 @@ namespace HazelServer
             }
 
             Console.WriteLine($"{DateTime.UtcNow} [TRACE] player input ({sequenceNumber}): {input[0]} {input[1]} {input[2]} {input[3]}");
+        }
+
+        //NOTE should ONLY be called by GameStateUpdateLogic
+        public void ApplyInputs()
+        {
+            //TODO check if player is sending "too many" inputs.  eg. more than they could actually generate at the fixedupdate rate
+            // fixedUpdate only allows for sending 6 inputs per fixedUpdate tick, but these might have been delayed/etc
+            
+            Console.WriteLine($"applying {_playerInputs.Count} inputs");
+            int i = 0;
+            int toProcessCount = _playerInputs.Count;
+
+            while (i < toProcessCount)
+            {
+                var playerInputStruct = _playerInputs.Dequeue();
+                Position = Movement.ApplyInput(Position, playerInputStruct.inputs);
+                i++;
+            }
         }
         
         //TODO how do we genericize this?  we want to send errors with strings, but sometimes just tags.  we don't 

@@ -1,8 +1,7 @@
 using System;
-using System.Net.Mime;
-using System.Numerics;
 using System.Threading;
 using Hazel;
+using UnityClient;
 
 namespace HazelServer
 {
@@ -13,15 +12,10 @@ namespace HazelServer
         public void thread()
         {
             Console.WriteLine($"{DateTime.UtcNow} [START] Starting game update loop");
-            //update loop 
             long tickRate = 100; //10 ticks per second
             int dt = 0;
             while (true)
             {
-                ServerTick++;
-                
-                //Console.WriteLine($"{DateTime.UtcNow} [TRACE] game state update");
-
                 long startTimeMS = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
 
                 PositionStruct[] positions = UpdatePlayerPositions();
@@ -39,6 +33,8 @@ namespace HazelServer
                 {
                     Console.WriteLine($"Position update took longer ({elapsedTimeMS}) than tick rate ({tickRate})");
                 }
+                
+                ServerTick++;
             }
         }
 
@@ -46,13 +42,13 @@ namespace HazelServer
         {
             var pl = Game.Instance.PlayerList;
             PositionStruct[] positions = new PositionStruct[pl.Count];
-            
+
             int i = 0;
             lock (pl)
             {
                 foreach (var player in pl)
                 {
-                    //TODO actually compute new player position!
+                    player.ApplyInputs();
                     
                     //TODO see todo in PositionStruct: don't send lastProcessedInput to everyone
                     positions[i] = new PositionStruct(player.id, player.LastProcessedInput, player.Position.X, player.Position.Y, player.lookDirection);
