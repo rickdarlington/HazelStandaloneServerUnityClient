@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Numerics;
 using Hazel;
 using System.Threading;
-using HazelServer.Shared;
 using UnityClient;
 
 namespace HazelServer

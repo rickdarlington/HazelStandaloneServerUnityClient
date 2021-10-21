@@ -39,7 +39,7 @@ namespace HazelServer
                 Console.WriteLine($"{DateTime.UtcNow} [START] Starting server"); 
                 UdpServerInstance.NewConnection += HandleNewConnection; 
                 UdpServerInstance.Start();
-                
+
                 //spawn game logic thread
                 Thread stateLogicThread = new Thread(_gameStateUpdateLogic.thread);
                 stateLogicThread.Start();

@@ -1,8 +1,8 @@
 using System.Numerics;
 
-namespace HazelServer.Shared
+namespace UnityClient
 {
-    public class Movement
+    public static class Movement
     {
         //FixedUpdate is bound to 0.01666667 in Unity>Edit>Project Settings>Time>Fixed Timestep
 

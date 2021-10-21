@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using HazelServer;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace UnityClient
@@ -48,20 +50,17 @@ namespace UnityClient
                     
                     //TODO implement de-instance player logic
 
-                    //special actions for this player
-                    if (pos.playerId == HazelNetworkManager.Instance.PlayerId)
-                    {
-                        RemoveAckedInputs(pos.lastProcessedInput);
-                        
-                        //TODO need GameObjects
-                        //Reconciliate(pos, myPlayer);
-                        
-                        Debug.Log($"my position: {pos.X} . {pos.Y}");
-                    }
-
                     GameObject g = null;
                     if(characters.TryGetValue(pos.playerId, out g))
                     {
+                        //special actions for this player
+                        if (pos.playerId == HazelNetworkManager.Instance.PlayerId)
+                        {
+                            RemoveAckedInputs(pos.lastProcessedInput);
+                            Reconciliate(pos, g);
+                            Debug.Log($"my position: {pos.X} . {pos.Y}");
+                        }
+                        
                         //TODO you want interpolation here?
                         g.transform.position = new Vector3(pos.X, pos.Y, 0);
                         //TODO also update look direction
@@ -77,8 +76,15 @@ namespace UnityClient
 
         private void Reconciliate(PositionStruct pos, GameObject myPlayer)
         {
-            //TODO implement me!
-            //update myPlayer position with Movement.ApplyInput
+            System.Numerics.Vector2 predictedPosition = new System.Numerics.Vector2(pos.X, pos.Y);
+
+            foreach (PlayerInputStruct input in SentInputs)
+            {
+                predictedPosition = Movement.ApplyInput(predictedPosition, input.inputs);
+            }
+
+            myPlayer.transform.position = new Vector3(predictedPosition.X, predictedPosition.Y, 0); 
+            //TODO we need something to manage rendering, animate the sprite, etc
         }
 
         private void RemoveAckedInputs(uint lastProcessedInput)
