@@ -112,19 +112,16 @@ namespace HazelServer
 
         private void StoreInput(MessageReader msg)
         {
-            uint sequenceNumber = msg.ReadPackedUInt32();
-            bool[] input = new[] { msg.ReadBoolean(), msg.ReadBoolean(), msg.ReadBoolean(), msg.ReadBoolean() };
-            
-            _playerInputs.Enqueue(new PlayerInputStruct(sequenceNumber, input));
-            
-            if (sequenceNumber > LastProcessedInput)
+            uint inputsCount = msg.ReadPackedUInt32();
+
+            int i = 0;
+            while (i < inputsCount)
             {
-                LastProcessedInput = sequenceNumber;
-            }
-            else
-            {
-                //TODO we should never get here since inputs are sent reliably.  this is more of an indicator to investigate
-                Console.WriteLine($"{DateTime.UtcNow} [TRACE] processing out of order player input {sequenceNumber} > {LastProcessedInput}");    
+                var sequenceNumber = msg.ReadPackedUInt32();
+                var dt = msg.ReadSingle();
+                bool[] input = new[] { msg.ReadBoolean(), msg.ReadBoolean(), msg.ReadBoolean(), msg.ReadBoolean() };
+                _playerInputs.Enqueue(new PlayerInputStruct(sequenceNumber, input, dt));
+                i++;
             }
         }
 
@@ -134,6 +131,7 @@ namespace HazelServer
             //TODO check if player is sending "too many" inputs.  eg. more than they could actually generate at the fixedupdate rate
             // fixedUpdate only allows for sending 6 inputs per fixedUpdate tick, but these might have been delayed/etc
             
+            //TODO we're allowing the player some authority here by letting them tell us what their dt was for a given input
             int i = 0;
             int toProcessCount = _playerInputs.Count;
 
@@ -141,6 +139,9 @@ namespace HazelServer
             {
                 var playerInputStruct = _playerInputs.Dequeue();
                 Position = Movement.ApplyInput(Position, playerInputStruct.inputs);
+                if(playerInputStruct.sequenceNumber > LastProcessedInput) {
+                    LastProcessedInput = playerInputStruct.sequenceNumber;
+                }
                 i++;
             }
         }

@@ -187,7 +187,7 @@ namespace UnityClient
             msg.Recycle();
         }
 
-        public void SendReliableInput(uint inputSequenceNumber, bool[] input)
+        public void SendReliableInput(PlayerInputStruct[] inputs)
         {
             if (!_networkManager.LoggedIn)
             {
@@ -196,13 +196,20 @@ namespace UnityClient
             
             var msg = MessageWriter.Get(SendOption.Reliable);
             msg.StartMessage((byte)MessageTags.PlayerInput);
-            msg.WritePacked(inputSequenceNumber);
-            msg.Write(input[0]);
-            msg.Write(input[1]);
-            msg.Write(input[2]);
-            msg.Write(input[3]);
-            msg.EndMessage();
+            msg.WritePacked(inputs.Length);
+            foreach (PlayerInputStruct ins in inputs)
+            {
+                //TODO we are giving the player some authority by letting them specify dt
+                msg.WritePacked(ins.sequenceNumber);
+                msg.Write(ins.dt);
+                msg.Write(ins.inputs[0]);
+                msg.Write(ins.inputs[1]);
+                msg.Write(ins.inputs[2]);
+                msg.Write(ins.inputs[3]);
+            }
 
+            msg.EndMessage();
+            
             try
             {
                 _networkManager.Connection.Send(msg);

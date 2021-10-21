@@ -5,11 +5,13 @@ namespace HazelServer
     public struct PlayerInputStruct
     {
         public uint sequenceNumber;
+        public float dt;
         public bool[] inputs;
 
-        public PlayerInputStruct(uint sequence, bool[] ins)
+        public PlayerInputStruct(uint sequence, bool[] ins, float deltaTime = 0.01666667f)
         {
             sequenceNumber = sequence;
+            dt = deltaTime;
             inputs = ins;
         }
     }

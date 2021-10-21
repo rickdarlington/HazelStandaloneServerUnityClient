@@ -1,0 +1,6 @@
+next up:
+  - fix console, always show?
+  - tab to focus on chat, esc to cancel, don't run playerinput logic when focused on chat input
+  - move logic in update, store batches, process in fixedupdate? 
+  - show sprites
+  - rendering helper for sprite animation/etc

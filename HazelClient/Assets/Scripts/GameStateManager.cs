@@ -6,6 +6,8 @@ namespace UnityClient
 {
     public class GameStateManager : MonoBehaviour
     {
+        private static bool RECONCILIATION_ENABLED = false;
+        
         [SerializeField] private GameObject characterPrefab;
         public static GameStateManager Instance => instance;
         private static GameStateManager instance;
@@ -54,12 +56,16 @@ namespace UnityClient
                         //special actions for this player
                         if (pos.playerId == HazelNetworkManager.Instance.PlayerId)
                         {
+                            //NOTE reconciliation for us
                             RemoveAckedInputs(pos.lastProcessedInput);
                             Reconciliate(pos, g);
                             Debug.Log($"my position: {pos.X} . {pos.Y}");
                         }
-                        
-                        g.transform.position = new Vector3(pos.X, pos.Y, 0);
+                        else
+                        {
+                            //TODO interpolation for everyone else
+                            g.transform.position = new Vector3(pos.X, pos.Y, 0);
+                        }
                         //TODO also update look direction
                     }
                     else
@@ -73,6 +79,11 @@ namespace UnityClient
 
         private void Reconciliate(PositionStruct pos, GameObject myPlayer)
         {
+            if (!RECONCILIATION_ENABLED)
+            {
+                return;
+            }
+            
             System.Numerics.Vector2 predictedPosition = new System.Numerics.Vector2(pos.X, pos.Y);
 
             foreach (PlayerInputStruct input in SentInputs)
@@ -105,6 +116,18 @@ namespace UnityClient
             //TODO actually set rotation based on pos.lookDirection
             var c = Instantiate(characterPrefab, new Vector3(pos.X, pos.Y, 0), Quaternion.identity);
             characters.Add(pos.playerId, c);
+        }
+
+        public GameObject getPlayerGameObject(uint playerId)
+        {
+            
+            GameObject g = null;
+            if(!characters.TryGetValue(playerId, out g)) 
+            {
+                Debug.Log($"[ERROR] can't get GameObject for playerId: {playerId} THIS SHOULD NEVER HAPPEN!!!");
+            }
+
+            return g;
         }
     }
 }
