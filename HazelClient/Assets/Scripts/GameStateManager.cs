@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using HazelServer;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace UnityClient
@@ -61,7 +59,6 @@ namespace UnityClient
                             Debug.Log($"my position: {pos.X} . {pos.Y}");
                         }
                         
-                        //TODO you want interpolation here?
                         g.transform.position = new Vector3(pos.X, pos.Y, 0);
                         //TODO also update look direction
                     }
