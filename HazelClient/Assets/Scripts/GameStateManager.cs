@@ -35,20 +35,27 @@ namespace UnityClient
             while (i < updatesToProcess)
             {
                 var update = GameUpdates.Dequeue();
-                //TODO actually do something with this update
-                foreach (var p in update.positions)
+                foreach (var pos in update.positions)
                 {
                     //special actions for this player
-                    if (p.playerId == HazelNetworkManager.Instance.PlayerId)
+                    if (pos.playerId == HazelNetworkManager.Instance.PlayerId)
                     {
-                        removeAckedInputs(p.lastProcessedInput);
-                        //TODO do reconciliation with what's left in SentInputs
+                        removeAckedInputs(pos.lastProcessedInput);
                         
-                        Debug.Log($"my position: {p.X} . {p.Y}");
+                        //TODO need GameObjects
+                        //reconciliate(pos, myPlayer);
+                        
+                        Debug.Log($"my position: {pos.X} . {pos.Y}");
                     }
                 }
                 i++;
             }
+        }
+
+        private void reconciliate(PositionStruct pos, GameObject myPlayer)
+        {
+            //TODO implement me!
+            //update myPlayer position with Movement.ApplyInput
         }
 
         private void removeAckedInputs(uint lastProcessedInput)
