@@ -36,7 +36,7 @@ namespace UnityClient
         public bool ConnectInProgress { get; private set; } = false;
 
         public string PlayerName { get; private set; } = "nobody";
-        public int PlayerId = 0;
+        public uint PlayerId = 0;
 
         private void Awake()
         {

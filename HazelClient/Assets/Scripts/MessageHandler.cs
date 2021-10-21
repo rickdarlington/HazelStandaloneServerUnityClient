@@ -80,7 +80,7 @@ namespace UnityClient
 
         private void ServerInitResponse(MessageReader reader)
         {
-            int myId = reader.ReadInt32();
+            uint myId = reader.ReadUInt32();
             Debug.Log($"[INFO] connected to server with player id: {myId}");
             HazelNetworkManager.Instance.PlayerId = myId;
 
