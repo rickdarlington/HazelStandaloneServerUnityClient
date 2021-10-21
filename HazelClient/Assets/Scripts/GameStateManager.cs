@@ -10,6 +10,8 @@ namespace UnityClient
         private static GameStateManager instance;
         
         public Queue<GameUpdateStruct> GameUpdates = new Queue<GameUpdateStruct>();
+
+        public Queue<PlayerInputStruct> SentInputs = new Queue<PlayerInputStruct>();
         
         private void Awake()
         {
@@ -29,7 +31,6 @@ namespace UnityClient
             int updatesToProcess = GameUpdates.Count;
             if (updatesToProcess == 0) return;
             
-            //Debug.Log($"processing {updatesToProcess} updates");
             int i = 0;
             while (i < updatesToProcess)
             {
@@ -37,13 +38,32 @@ namespace UnityClient
                 //TODO actually do something with this update
                 foreach (var p in update.positions)
                 {
-                    //if this is me, update debugging info
+                    //special actions for this player
                     if (p.playerId == HazelNetworkManager.Instance.PlayerId)
                     {
+                        removeAckedInputs(p.lastProcessedInput);
+                        //TODO do reconciliation with what's left in SentInputs
+                        
                         Debug.Log($"my position: {p.X} . {p.Y}");
                     }
                 }
                 i++;
+            }
+        }
+
+        private void removeAckedInputs(uint lastProcessedInput)
+        {
+            while (SentInputs.Count > 0)
+            {
+                PlayerInputStruct i = SentInputs.Peek();
+                if (i.sequenceNumber <= lastProcessedInput)
+                {
+                    SentInputs.Dequeue();
+                }
+                else
+                {
+                    return;
+                }
             }
         }
     }

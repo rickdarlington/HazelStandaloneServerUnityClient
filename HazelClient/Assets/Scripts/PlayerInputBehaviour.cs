@@ -1,8 +1,7 @@
-using System;
 using System.Linq;
+using HazelServer;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.PlayerLoop;
 
 namespace UnityClient
 {
@@ -31,6 +30,7 @@ namespace UnityClient
 
             if (inputs.Contains(true))
             {
+                GameStateManager.Instance.SentInputs.Enqueue(new PlayerInputStruct(inputSequenceNumber, inputs));
                 MessageHandler.Instance.SendReliableInput(inputSequenceNumber, inputs);
                 inputSequenceNumber++;
             }

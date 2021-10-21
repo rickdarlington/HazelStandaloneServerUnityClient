@@ -127,8 +127,6 @@ namespace HazelServer
                 //TODO we should never get here since inputs are sent reliably.  this is more of an indicator to investigate
                 Console.WriteLine($"{DateTime.UtcNow} [TRACE] processing out of order player input {sequenceNumber} > {LastProcessedInput}");    
             }
-
-            Console.WriteLine($"{DateTime.UtcNow} [TRACE] player input ({sequenceNumber}): {input[0]} {input[1]} {input[2]} {input[3]}");
         }
 
         //NOTE should ONLY be called by GameStateUpdateLogic

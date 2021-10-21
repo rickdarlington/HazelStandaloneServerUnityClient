@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Hazel;
 using HazelServer;
@@ -113,9 +112,7 @@ namespace UnityClient
             var updates = msg.ReadPackedUInt32();
             var serverTick = msg.ReadPackedUInt32();
             List<PositionStruct> positions = new List<PositionStruct>();
-
-            //Debug.Log($"Processing ({updates+1}) update(s).");
-
+            
             var i = 0;
             while (i < updates+1)
             {
@@ -123,12 +120,6 @@ namespace UnityClient
                     msg.ReadPackedUInt32());
 
                 positions.Add(pos);
-                //TODO uncomment to see my player's position packets as they come in
-                //if (pos.playerId == _networkManager.PlayerId)
-                //{
-                //    Debug.Log($"Server tick: {serverTick} player: {pos.playerId} last input: {pos.lastProcessedInput} position: {pos.X} . {pos.Y}");
-                //}
-
                 i++;
             }
 
