@@ -41,9 +41,11 @@ namespace UnityClient
                 var update = GameUpdates.Dequeue();
                 foreach (var pos in update.positions)
                 {
+                    Debug.Log($"working on player id: {pos.playerId}");
                     //first time we've seen this player?
                     if (!characters.ContainsKey(pos.playerId))
                     {
+                        Debug.Log($"spawning character {pos.playerId}");
                         InstanceCharacter(pos);
                     }
                     
@@ -58,8 +60,6 @@ namespace UnityClient
                             //NOTE reconciliation for us
                             RemoveAckedInputs(pos.lastProcessedInput);
                             Reconciliate(pos, g);
-                            
-                            //Debug.Log($"position on server: {pos.X} . {pos.Y}");
                         }
                         else
                         {
@@ -86,8 +86,8 @@ namespace UnityClient
                 predictedPosition = Movement.ApplyInput(predictedPosition, input.inputs, input.dt);
             }
 
-            Debug.Log($"server: {pos.X}, {pos.Y} predicted: {predictedPosition.X}, {predictedPosition.Y} ");
-            
+            //TODO this makes movement choppy as hell.  Should we not set directly?  interpolate?  what?
+            //Debug.Log($"server: {pos.X}, {pos.Y} predicted: {predictedPosition.X}, {predictedPosition.Y} ");
             //myPlayer.transform.position = new Vector3(predictedPosition.X, predictedPosition.Y, 0);
         }
 
@@ -102,7 +102,7 @@ namespace UnityClient
                 }
                 else
                 {
-                    Debug.Log($"unacked inputs: {SentInputs.Count} {SentInputs.Peek().sequenceNumber}");
+                    //Debug.Log($"unacked inputs: {SentInputs.Count} {SentInputs.Peek().sequenceNumber}");
                     return;
                 }
             }

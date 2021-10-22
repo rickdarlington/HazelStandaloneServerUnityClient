@@ -9,12 +9,14 @@ namespace UnityClient
     public class MessageHandler
     {
         private readonly HazelNetworkManager _networkManager;
+        private readonly GameStateManager _gameStateManager;
 
         private static MessageHandler instance = null;
         
         private MessageHandler()
         {
             _networkManager = HazelNetworkManager.Instance;
+            _gameStateManager = GameStateManager.Instance;
         }
 
         public static MessageHandler Instance
@@ -112,11 +114,16 @@ namespace UnityClient
             var updates = msg.ReadPackedUInt32();
             var serverTick = msg.ReadPackedUInt32();
             List<PositionStruct> positions = new List<PositionStruct>();
+
+            Debug.Log($"update count: {updates}");
             
             var i = 0;
-            while (i < updates+1)
+            while (i < updates)
             {
-                PositionStruct pos = new PositionStruct(msg.ReadPackedUInt32(), msg.ReadPackedUInt32(), msg.ReadSingle(), msg.ReadSingle(),
+                uint playerId = msg.ReadPackedUInt32();
+                Debug.Log($"update for player {playerId}");
+
+                PositionStruct pos = new PositionStruct(playerId, msg.ReadPackedUInt32(), msg.ReadSingle(), msg.ReadSingle(),
                     msg.ReadPackedUInt32());
 
                 positions.Add(pos);

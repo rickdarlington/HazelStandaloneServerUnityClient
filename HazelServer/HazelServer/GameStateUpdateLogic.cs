@@ -62,11 +62,12 @@ namespace HazelServer
         private void SendPlayerStateDataUpdates(PositionStruct[] positions)
         {
             //TODO probably AOI at least 
-            var l = positions.Length / 4;
             
             var msg = MessageWriter.Get();
             msg.StartMessage((byte)MessageTags.GameData);
-            msg.WritePacked(l);
+            msg.WritePacked(positions.Length);
+            
+            //TODO do we need this? why do we care what server tick it is?
             msg.WritePacked(ServerTick);
 
             foreach (PositionStruct position in positions)
