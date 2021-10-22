@@ -6,8 +6,6 @@ namespace UnityClient
 {
     public class GameStateManager : MonoBehaviour
     {
-        private static bool RECONCILIATION_ENABLED = false;
-        
         [SerializeField] private GameObject characterPrefab;
         public static GameStateManager Instance => instance;
         private static GameStateManager instance;
@@ -79,11 +77,6 @@ namespace UnityClient
 
         private void Reconciliate(PositionStruct pos, GameObject myPlayer)
         {
-            if (!RECONCILIATION_ENABLED)
-            {
-                return;
-            }
-            
             System.Numerics.Vector2 predictedPosition = new System.Numerics.Vector2(pos.X, pos.Y);
 
             foreach (PlayerInputStruct input in SentInputs)
