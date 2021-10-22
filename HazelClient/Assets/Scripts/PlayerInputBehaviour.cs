@@ -10,6 +10,8 @@ namespace UnityClient
 {
     public class PlayerInputBehaviour : MonoBehaviour
     {
+        private Vector2 _playerInputPosition = new Vector2(0, 0);
+        
         private uint inputSequenceNumber = 0;
         
         private Queue<PlayerInputStruct> _batchedInputs = new Queue<PlayerInputStruct>();
@@ -33,18 +35,19 @@ namespace UnityClient
 
             if (inputs.Contains(true))
             {
-                _batchedInputs.Enqueue(new PlayerInputStruct(inputSequenceNumber, inputs, Time.deltaTime));
+                var dt = Time.deltaTime;
+                _batchedInputs.Enqueue(new PlayerInputStruct(inputSequenceNumber, inputs, dt));
                 inputSequenceNumber++;
-                
+
                 //apply the input to the player (this is "prediction")
                 GameObject player = gameStateManager.getPlayerGameObject(networkManager.PlayerId);
                 if (player == null)
                 {
-                    Debug.Log("WTF did you do?");
+                    Debug.Log("you broke it :(");
                     return;
                 }
-                Vector2 pos = new Vector2(player.transform.position.x, player.transform.position.y);
-                Vector2 newPos = Movement.ApplyInput(pos, inputs, Time.deltaTime);
+                
+                Vector2 newPos = Movement.ApplyInput(player.transform.position.x, player.transform.position.y, inputs, dt);
                 player.transform.position = new Vector3(newPos.X, newPos.Y, 0);
             }
         }

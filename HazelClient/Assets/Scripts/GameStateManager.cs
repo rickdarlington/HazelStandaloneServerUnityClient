@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HazelServer;
 using UnityEngine;
@@ -15,7 +16,7 @@ namespace UnityClient
         public Queue<PlayerInputStruct> SentInputs = new Queue<PlayerInputStruct>();
 
         public Dictionary<uint, GameObject> characters = new Dictionary<uint, GameObject>();
-
+        
         private void Awake()
         {
             Debug.Log("instancing GameStateManager in Awake()");
@@ -29,7 +30,7 @@ namespace UnityClient
                 Destroy(this);
             }
         }
-        
+
         private void FixedUpdate()
         {
             int updatesToProcess = GameUpdates.Count;
@@ -41,7 +42,6 @@ namespace UnityClient
                 var update = GameUpdates.Dequeue();
                 foreach (var pos in update.positions)
                 {
-                    Debug.Log($"working on player id: {pos.playerId}");
                     //first time we've seen this player?
                     if (!characters.ContainsKey(pos.playerId))
                     {
@@ -57,7 +57,6 @@ namespace UnityClient
                         //special actions for this player
                         if (pos.playerId == HazelNetworkManager.Instance.PlayerId)
                         {
-                            //NOTE reconciliation for us
                             RemoveAckedInputs(pos.lastProcessedInput);
                             Reconciliate(pos, g);
                         }
@@ -85,10 +84,22 @@ namespace UnityClient
             {
                 predictedPosition = Movement.ApplyInput(predictedPosition, input.inputs, input.dt);
             }
-
-            //TODO this makes movement choppy as hell.  Should we not set directly?  interpolate?  what?
-            //Debug.Log($"server: {pos.X}, {pos.Y} predicted: {predictedPosition.X}, {predictedPosition.Y} ");
-            //myPlayer.transform.position = new Vector3(predictedPosition.X, predictedPosition.Y, 0);
+            
+            /*
+            Debug.Log(
+                $"server: {pos.X}, {pos.Y} | " +
+                        $"predicted: {predictedPosition.X}, {predictedPosition.Y} | " +
+                        $"current: {myPlayer.transform.position.x}, {myPlayer.transform.position.y}");
+            */
+            
+            if (predictedPosition.X != myPlayer.transform.position.x ||
+                predictedPosition.Y != myPlayer.transform.position.y)
+            {
+                //TODO might want to tune this to avoid snaps under reasonable distance
+                Debug.Log($"SNAP: {predictedPosition.X}, {predictedPosition.Y} => {myPlayer.transform.position.x}, {myPlayer.transform.position.y}");
+                Debug.Log($"distance: {Vector2.Distance(new Vector2(predictedPosition.X, predictedPosition.Y), myPlayer.transform.position)}");
+            }
+            myPlayer.transform.position = new Vector3(predictedPosition.X, predictedPosition.Y, 0);
         }
 
         private void RemoveAckedInputs(uint lastProcessedInput)

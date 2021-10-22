@@ -115,13 +115,10 @@ namespace UnityClient
             var serverTick = msg.ReadPackedUInt32();
             List<PositionStruct> positions = new List<PositionStruct>();
 
-            Debug.Log($"update count: {updates}");
-            
             var i = 0;
             while (i < updates)
             {
                 uint playerId = msg.ReadPackedUInt32();
-                Debug.Log($"update for player {playerId}");
 
                 PositionStruct pos = new PositionStruct(playerId, msg.ReadPackedUInt32(), msg.ReadSingle(), msg.ReadSingle(),
                     msg.ReadPackedUInt32());

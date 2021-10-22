@@ -6,7 +6,12 @@ namespace UnityClient
     {
         //FixedUpdate is bound to 0.01666667 in Unity>Edit>Project Settings>Time>Fixed Timestep
 
-        private static int moveSpeed = 1;
+        private static float moveSpeed = 1.0f;
+
+        public static Vector2 ApplyInput(float x, float y, bool[] input, float deltatime)
+        {
+            return ApplyInput(new Vector2(x, y), input, deltatime);
+        }
 
         public static Vector2 ApplyInput(Vector2 position, bool[] input, float deltaTime)
         {

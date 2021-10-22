@@ -139,7 +139,7 @@ namespace HazelServer
             while (i < toProcessCount)
             {
                 var playerInputStruct = _playerInputs.Dequeue();
-                Position = Movement.ApplyInput(Position, playerInputStruct.inputs, 0.01666667f);
+                Position = Movement.ApplyInput(Position, playerInputStruct.inputs, playerInputStruct.dt);
                 
                 //Console.WriteLine($"{DateTime.UtcNow} [TRACE] processing input seq {playerInputStruct.sequenceNumber}");
                 
