@@ -19,7 +19,6 @@ namespace UnityClient
         
         private void Awake()
         {
-            Debug.Log("instancing GameStateManager in Awake()");
             if (instance == null)
             {
                 instance = this;
@@ -54,9 +53,9 @@ namespace UnityClient
                     GameObject g = null;
                     if(characters.TryGetValue(pos.playerId, out g))
                     {
-                        //special actions for this player
                         if (pos.playerId == HazelNetworkManager.Instance.PlayerId)
                         {
+                            //reconciliation for us
                             RemoveAckedInputs(pos.lastProcessedInput);
                             Reconciliate(pos, g);
                         }
@@ -85,12 +84,7 @@ namespace UnityClient
                 predictedPosition = Movement.ApplyInput(predictedPosition, input.inputs, input.dt);
             }
             
-            /*
-            Debug.Log(
-                $"server: {pos.X}, {pos.Y} | " +
-                        $"predicted: {predictedPosition.X}, {predictedPosition.Y} | " +
-                        $"current: {myPlayer.transform.position.x}, {myPlayer.transform.position.y}");
-            */
+            //Debug.Log($"server: {pos.X}, {pos.Y} | predicted: {predictedPosition.X}, {predictedPosition.Y} | current: {myPlayer.transform.position.x}, {myPlayer.transform.position.y}");
             
             if (predictedPosition.X != myPlayer.transform.position.x ||
                 predictedPosition.Y != myPlayer.transform.position.y)
@@ -99,6 +93,7 @@ namespace UnityClient
                 Debug.Log($"SNAP: {predictedPosition.X}, {predictedPosition.Y} => {myPlayer.transform.position.x}, {myPlayer.transform.position.y}");
                 Debug.Log($"distance: {Vector2.Distance(new Vector2(predictedPosition.X, predictedPosition.Y), myPlayer.transform.position)}");
             }
+            
             myPlayer.transform.position = new Vector3(predictedPosition.X, predictedPosition.Y, 0);
         }
 

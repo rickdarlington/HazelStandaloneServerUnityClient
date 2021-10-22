@@ -203,7 +203,7 @@ namespace UnityClient
             msg.WritePacked(inputs.Length);
             foreach (PlayerInputStruct ins in inputs)
             {
-                //TODO we are giving the player some authority by letting them specify dt
+                //TODO we are giving the player some authority by letting them specify dt, needs server validation
                 msg.WritePacked(ins.sequenceNumber);
                 msg.Write(ins.dt);
                 msg.Write(ins.inputs[0]);

@@ -2,11 +2,11 @@ using System.Collections.Generic;
 
 namespace HazelServer
 {
-    public struct PlayerInputStruct
+    public readonly struct PlayerInputStruct
     {
-        public uint sequenceNumber;
-        public float dt;
-        public bool[] inputs;
+        public readonly uint sequenceNumber;
+        public readonly float dt;
+        public readonly bool[] inputs;
 
         public PlayerInputStruct(uint sequence, bool[] ins, float deltaTime = 0.01666667f)
         {
@@ -16,11 +16,11 @@ namespace HazelServer
         }
     }
     
-    public struct GameUpdateStruct 
+    public readonly struct GameUpdateStruct 
     {
-        public uint updateCount;
-        public uint serverTick;
-        public List<PositionStruct> positions;
+        public readonly uint updateCount;
+        public readonly uint serverTick;
+        public readonly List<PositionStruct> positions;
                 
         public GameUpdateStruct(uint count, uint tick, List<PositionStruct> pos)
         {
@@ -30,7 +30,7 @@ namespace HazelServer
         }
     }
 
-    public struct PositionStruct
+    public readonly struct PositionStruct
     {
         public readonly uint playerId;
         public readonly float X;

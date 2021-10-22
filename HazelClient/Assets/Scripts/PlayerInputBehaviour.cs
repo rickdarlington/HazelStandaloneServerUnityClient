@@ -10,8 +10,6 @@ namespace UnityClient
 {
     public class PlayerInputBehaviour : MonoBehaviour
     {
-        private Vector2 _playerInputPosition = new Vector2(0, 0);
-        
         private uint inputSequenceNumber = 0;
         
         private Queue<PlayerInputStruct> _batchedInputs = new Queue<PlayerInputStruct>();
@@ -54,7 +52,7 @@ namespace UnityClient
 
         private void FixedUpdate()
         {
-            //FixedUpdate is bound to 0.01666667 in Unity>Edit>Project Settings>Time>Fixed Timestep
+            //FixedUpdate can be set to 0.01666667 in Unity>Edit>Project Settings>Time>Fixed Timestep to match server
             int count = _batchedInputs.Count;
             int i = 0;
 

@@ -40,8 +40,6 @@ namespace UnityClient
 
         private void Awake()
         {
-            Debug.Log("instancing HazelNetworkManager in Awake()");
-            
             if (instance == null)
             {
                 instance = this;
