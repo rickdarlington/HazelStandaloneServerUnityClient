@@ -88,7 +88,7 @@ namespace UnityClient
 
             foreach (PlayerInputStruct input in SentInputs)
             {
-                predictedPosition = Movement.ApplyInput(predictedPosition, input.inputs);
+                predictedPosition = Movement.ApplyInput(predictedPosition, input.inputs, input.dt);
             }
 
             myPlayer.transform.position = new Vector3(predictedPosition.X, predictedPosition.Y, 0); 
