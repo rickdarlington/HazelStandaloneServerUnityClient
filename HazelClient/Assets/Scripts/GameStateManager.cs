@@ -18,6 +18,7 @@ namespace UnityClient
 
         private void Awake()
         {
+            Debug.Log("instancing GameStateManager in Awake()");
             if (instance == null)
             {
                 instance = this;
@@ -57,7 +58,8 @@ namespace UnityClient
                             //NOTE reconciliation for us
                             RemoveAckedInputs(pos.lastProcessedInput);
                             Reconciliate(pos, g);
-                            Debug.Log($"my position: {pos.X} . {pos.Y}");
+                            
+                            //Debug.Log($"position on server: {pos.X} . {pos.Y}");
                         }
                         else
                         {
@@ -84,8 +86,9 @@ namespace UnityClient
                 predictedPosition = Movement.ApplyInput(predictedPosition, input.inputs, input.dt);
             }
 
-            myPlayer.transform.position = new Vector3(predictedPosition.X, predictedPosition.Y, 0); 
-            //TODO we need something to manage rendering, animate the sprite, etc
+            Debug.Log($"server: {pos.X}, {pos.Y} predicted: {predictedPosition.X}, {predictedPosition.Y} ");
+            
+            //myPlayer.transform.position = new Vector3(predictedPosition.X, predictedPosition.Y, 0);
         }
 
         private void RemoveAckedInputs(uint lastProcessedInput)
@@ -99,6 +102,7 @@ namespace UnityClient
                 }
                 else
                 {
+                    Debug.Log($"unacked inputs: {SentInputs.Count} {SentInputs.Peek().sequenceNumber}");
                     return;
                 }
             }

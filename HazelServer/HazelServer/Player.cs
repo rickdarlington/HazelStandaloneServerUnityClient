@@ -130,6 +130,7 @@ namespace HazelServer
         {
             //TODO check if player is sending "too many" inputs.  eg. more than they could actually generate at the fixedupdate rate
             // fixedUpdate only allows for sending 6 inputs per fixedUpdate tick, but these might have been delayed/etc
+            // how? add up all dts and ensure they're less than 0.0167?
             
             //TODO we're allowing the player some authority here by letting them tell us what their dt was for a given input
             int i = 0;
@@ -138,7 +139,10 @@ namespace HazelServer
             while (i < toProcessCount)
             {
                 var playerInputStruct = _playerInputs.Dequeue();
-                Position = Movement.ApplyInput(Position, playerInputStruct.inputs);
+                Position = Movement.ApplyInput(Position, playerInputStruct.inputs, 0.01666667f);
+                
+                Console.WriteLine($"{DateTime.UtcNow} [TRACE] processing input seq {playerInputStruct.sequenceNumber}");
+                
                 if(playerInputStruct.sequenceNumber > LastProcessedInput) {
                     LastProcessedInput = playerInputStruct.sequenceNumber;
                 }

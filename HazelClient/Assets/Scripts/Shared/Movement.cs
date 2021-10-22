@@ -8,7 +8,7 @@ namespace UnityClient
 
         private static int moveSpeed = 1;
 
-        public static Vector2 ApplyInput(Vector2 position, bool[] input, float deltaTime = 0.01666667f)
+        public static Vector2 ApplyInput(Vector2 position, bool[] input, float deltaTime)
         {
             if (input[0]) position.Y += moveSpeed * deltaTime;
             if (input[2]) position.Y -= moveSpeed * deltaTime;
