@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace HazelServer
@@ -16,7 +17,7 @@ namespace HazelServer
         }
     }
     
-    public readonly struct GameUpdateStruct 
+    public struct GameUpdateStruct 
     {
         public readonly uint updateCount;
         public readonly uint serverTick;
@@ -30,13 +31,16 @@ namespace HazelServer
         }
     }
 
-    public readonly struct PositionStruct
+    public class PositionStruct
     {
         public readonly uint playerId;
         public readonly float X;
         public readonly float Y;
         public readonly uint lookDirection;
 
+        //only used in interpolation
+        public long renderTime;
+        
         //TODO refactor this.  should only send it to the relevant player
         public readonly uint lastProcessedInput;
 
@@ -47,6 +51,7 @@ namespace HazelServer
             X = x;
             Y = y;
             lookDirection = l;
+            renderTime = DateTime.MinValue.Ticks/TimeSpan.TicksPerMillisecond;
         }
     }
 }

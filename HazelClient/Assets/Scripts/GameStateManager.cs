@@ -15,8 +15,8 @@ namespace UnityClient
 
         public Queue<PlayerInputStruct> SentInputs = new Queue<PlayerInputStruct>();
 
-        public Dictionary<uint, GameObject> characters = new Dictionary<uint, GameObject>();
-        
+        public Dictionary<uint, EntityMetadata> characters = new Dictionary<uint, EntityMetadata>();
+
         private void Awake()
         {
             if (instance == null)
@@ -30,15 +30,57 @@ namespace UnityClient
             }
         }
 
+        private void Update()
+        {
+            interpolateEntities();
+        }
+
+        private void interpolateEntities()
+        {
+            long ts = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+            foreach (var kv in characters)
+            {
+                EntityMetadata e = kv.Value;
+                //we don't interpolate ourselves, duh
+                if (e.playerId != HazelNetworkManager.Instance.PlayerId)
+                {
+                    if (e.previousPosition.X == e.nextPosition.X && e.previousPosition.Y == e.nextPosition.Y)
+                    {
+                        continue;
+                    }
+                    
+                    //TODO from Gambetta, can we simplify to make this more clear?
+                    //it's also a bit choppy when the other player changes direction
+                    //entity.x = x0 + (x1 - x0) * (render_timestamp - t0) / (t1 - t0);
+                    float x = e.previousPosition.X + (e.nextPosition.X - e.previousPosition.X) *
+                        (ts - e.previousPosition.renderTime) /
+                        (e.nextPosition.renderTime - e.previousPosition.renderTime);
+                    
+                    float y = e.previousPosition.Y + (e.nextPosition.Y - e.previousPosition.Y) *
+                        (ts - e.previousPosition.renderTime) /
+                        (e.nextPosition.renderTime - e.previousPosition.renderTime);
+
+                    e.gameObject.transform.position = new Vector3(x, y, 0);
+                }
+            }
+        }
+
         private void FixedUpdate()
         {
             int updatesToProcess = GameUpdates.Count;
             if (updatesToProcess == 0) return;
-            
+
+            if (updatesToProcess > 1)
+            {
+                Debug.Log($"Our FixedUpdate() is running slower than server: accumulated updates {updatesToProcess}");
+            }
+
             int i = 0;
             while (i < updatesToProcess)
             {
-                var update = GameUpdates.Dequeue();
+                GameUpdateStruct update = GameUpdates.Dequeue();
+                long renderTime = DateTime.Now.Ticks/TimeSpan.TicksPerMillisecond;
+                
                 foreach (var pos in update.positions)
                 {
                     //first time we've seen this player?
@@ -50,20 +92,21 @@ namespace UnityClient
                     
                     //TODO implement de-instance player logic
 
-                    GameObject g = null;
-                    if(characters.TryGetValue(pos.playerId, out g))
+                    EntityMetadata e;
+                    if(characters.TryGetValue(pos.playerId, out e))
                     {
                         if (pos.playerId == HazelNetworkManager.Instance.PlayerId)
                         {
                             //reconciliation for us
                             RemoveAckedInputs(pos.lastProcessedInput);
-                            Reconciliate(pos, g);
+                            Reconciliate(pos, e.gameObject);
                         }
                         else
                         {
-                            //TODO interpolation for everyone else
-                            g.transform.position = new Vector3(pos.X, pos.Y, 0);
+                            pos.renderTime = renderTime;
+                            e.updatePositionBuffer(pos);
                         }
+
                         //TODO also update look direction
                     }
                     else
@@ -118,19 +161,22 @@ namespace UnityClient
         {
             //TODO actually set rotation based on pos.lookDirection
             var c = Instantiate(characterPrefab, new Vector3(pos.X, pos.Y, 0), Quaternion.identity);
-            characters.Add(pos.playerId, c);
+            
+            //TODO refactor? we set pos twice because this is a struct and previous can't be null
+            EntityMetadata e = new EntityMetadata(pos.playerId, c, pos, pos);
+            characters.Add(pos.playerId, e);
         }
 
         public GameObject getPlayerGameObject(uint playerId)
         {
-            
-            GameObject g = null;
-            if(!characters.TryGetValue(playerId, out g)) 
+
+            EntityMetadata e;
+            if(!characters.TryGetValue(playerId, out e)) 
             {
                 Debug.Log($"[ERROR] can't get GameObject for playerId: {playerId} THIS SHOULD NEVER HAPPEN!!!");
             }
 
-            return g;
+            return e.gameObject;
         }
     }
 }
