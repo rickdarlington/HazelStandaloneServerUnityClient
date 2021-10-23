@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using HazelServer;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Vector2 = System.Numerics.Vector2;
@@ -10,12 +10,19 @@ namespace UnityClient
 {
     public class PlayerInputBehaviour : MonoBehaviour
     {
+        [SerializeField] private TMP_InputField consoleInputField;
+        
         private uint inputSequenceNumber = 0;
         
         private Queue<PlayerInputStruct> _batchedInputs = new Queue<PlayerInputStruct>();
 
         private void Update()
         {
+            if (consoleInputField.isFocused)
+            {
+                return;
+            }
+            
             //TODO is there an efficiency hit here?
             var networkManager = HazelNetworkManager.Instance;
             var gameStateManager = GameStateManager.Instance;

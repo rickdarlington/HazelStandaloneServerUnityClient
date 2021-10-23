@@ -10,7 +10,6 @@ namespace UnityClient.Utilities
         [SerializeField] private string prefix = string.Empty;
 
         [Header("UI")] 
-        [SerializeField] private GameObject uiCanvas = null;
         [SerializeField] private TMP_InputField _consoleInputField = null;
 
         private static ConsoleBehaviour instance;
@@ -33,33 +32,39 @@ namespace UnityClient.Utilities
         {
             if (context.action.triggered)
             {
-                if (uiCanvas.activeSelf)
+
+                if (_consoleInputField.isFocused)
                 {
-                    uiCanvas.SetActive(false);
+                    _consoleInputField.DeactivateInputField();
                 }
                 else
                 {
-                    uiCanvas.SetActive(true);
+                    _consoleInputField.Select();
                     _consoleInputField.ActivateInputField();
-                } 
+                }
             }
         }
 
-        public void OnEndEdit()
+/*        public void EndEdit(InputAction.CallbackContext context)
         {
-            string text = _consoleInputField.text;
-            if (text.StartsWith(prefix))
+            if (context.action.triggered)
             {
-                ProcessCommand(text);
-            }
-            else
-            {
-                PlayerChat(text);
-            }
-            
-            _consoleInputField.text = string.Empty;        
-        }
+                Debug.Log("onEndEdit");
 
+                string text = _consoleInputField.text;
+                if (text.StartsWith(prefix))
+                {
+                    ProcessCommand(text);
+                }
+                else
+                {
+                    PlayerChat(text);
+                }
+
+                _consoleInputField.text = string.Empty;
+            }
+        }
+*/
         private void ProcessCommand(string text)
         {
             text = text.Remove(0, prefix.Length);

@@ -35,7 +35,7 @@
                     "id": "a541915e-6db3-4244-ba98-ddb12f796087",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "Press"
                 },
                 {
                     "name": "Menu",
@@ -270,7 +270,7 @@
                 {
                     "name": "",
                     "id": "48b0e895-b9f0-4491-87b4-eedafd3ce032",
-                    "path": "<Keyboard>/backquote",
+                    "path": "<Keyboard>/tab",
                     "interactions": "Press",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
