@@ -26,7 +26,7 @@ namespace UnityClient.Utilities
                 Destroy(gameObject);
             }
         }
-
+        
         //called by input actions (new input system)
         public void Toggle(InputAction.CallbackContext context)
         {
@@ -45,12 +45,10 @@ namespace UnityClient.Utilities
             }
         }
 
-/*        public void EndEdit(InputAction.CallbackContext context)
+        public void Send(InputAction.CallbackContext context)
         {
             if (context.action.triggered)
             {
-                Debug.Log("onEndEdit");
-
                 string text = _consoleInputField.text;
                 if (text.StartsWith(prefix))
                 {
@@ -64,7 +62,7 @@ namespace UnityClient.Utilities
                 _consoleInputField.text = string.Empty;
             }
         }
-*/
+
         private void ProcessCommand(string text)
         {
             text = text.Remove(0, prefix.Length);
@@ -78,7 +76,7 @@ namespace UnityClient.Utilities
                     MessageHandler.Instance.SendConsoleToServer(rest);
                     break;
                 default:
-                    Debug.Log("[ERROR] invalid command.");
+                    Debug.Log("[ERROR] /invalid command.");
                     break;
 
             }

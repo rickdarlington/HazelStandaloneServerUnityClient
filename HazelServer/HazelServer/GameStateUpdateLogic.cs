@@ -68,6 +68,7 @@ namespace HazelServer
             msg.WritePacked(positions.Length);
             
             //TODO do we need this? why do we care what server tick it is?
+            //we may kinda care about this for lag compensation later
             msg.WritePacked(ServerTick);
 
             foreach (PositionStruct position in positions)

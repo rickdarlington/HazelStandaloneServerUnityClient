@@ -30,7 +30,15 @@
                     "interactions": ""
                 },
                 {
-                    "name": "Console",
+                    "name": "Menu",
+                    "type": "Button",
+                    "id": "59e36c97-6bc6-44d7-a4aa-cef2fe6dad13",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "ConsoleToggle",
                     "type": "Button",
                     "id": "a541915e-6db3-4244-ba98-ddb12f796087",
                     "expectedControlType": "Button",
@@ -38,12 +46,12 @@
                     "interactions": "Press"
                 },
                 {
-                    "name": "Menu",
+                    "name": "ConsoleSend",
                     "type": "Button",
-                    "id": "59e36c97-6bc6-44d7-a4aa-cef2fe6dad13",
+                    "id": "6ddcbfae-fde2-4ae4-876f-35948451ab79",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "Press"
                 }
             ],
             "bindings": [
@@ -269,23 +277,34 @@
                 },
                 {
                     "name": "",
-                    "id": "48b0e895-b9f0-4491-87b4-eedafd3ce032",
-                    "path": "<Keyboard>/tab",
-                    "interactions": "Press",
-                    "processors": "",
-                    "groups": "Keyboard&Mouse",
-                    "action": "Console",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "279c789a-07cf-4009-b9ec-d849295a3de0",
                     "path": "<Keyboard>/escape",
                     "interactions": "Press",
                     "processors": "",
                     "groups": "",
                     "action": "Menu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "48b0e895-b9f0-4491-87b4-eedafd3ce032",
+                    "path": "<Keyboard>/tab",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "ConsoleToggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c15909f0-4f7c-4f0d-8897-9e3a29dae86e",
+                    "path": "<Keyboard>/enter",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ConsoleSend",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
