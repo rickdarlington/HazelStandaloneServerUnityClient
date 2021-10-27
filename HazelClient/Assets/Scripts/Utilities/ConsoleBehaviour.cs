@@ -1,9 +1,10 @@
-using System;
+using System.Collections;
 using System.Collections.Generic;
 using HazelServer;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using UnityEngine.UIElements;
 
 namespace UnityClient.Utilities
@@ -15,6 +16,7 @@ namespace UnityClient.Utilities
         [Header("UI")] 
         [SerializeField] private TMP_InputField _consoleInputField = null;
         [SerializeField] private TMP_Text _consoleText = null;
+        [SerializeField] private ScrollRect _scrollRect = null;
 
         // Unity gets very grumpy if you start messing with GameObjects on threads
         // other than the main one. So while sending/receiving messages can be multithreaded,
@@ -46,9 +48,22 @@ namespace UnityClient.Utilities
             {
                 ChatMessageStruct msg = messageQueue.Dequeue();
                 Debug.Log($"[TRACE] incoming chat message: {msg.message}");
-                _consoleText.text += $"[{msg.playerName}] {msg.message}\n";
+                _consoleText.text += $"\n[{msg.playerName}] {msg.message}";
+            }
+
+            if (num > 0)
+            {
+                StartCoroutine(ScrollToBottom());
             }
         }
+
+        private IEnumerator ScrollToBottom()
+        {
+            //TODO if someone manually scrolls away, probably don't do this (it'll be annoying)
+            yield return new WaitForEndOfFrame();
+            _scrollRect.normalizedPosition = new Vector2(0, 0);
+        }
+
 
         //called by input actions (new input system)
         public void Toggle(InputAction.CallbackContext context)
