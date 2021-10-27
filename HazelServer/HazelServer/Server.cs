@@ -82,6 +82,17 @@ namespace HazelServer
         {
             switch (input)
             {
+                case "tc": 
+                case "testchat":
+                    var chatMessage = MessageWriter.Get(SendOption.Reliable);
+                    chatMessage.StartMessage((byte)MessageTags.PlayerChat);
+                    chatMessage.WritePacked(0);
+                    chatMessage.Write("SERVER");
+                    chatMessage.Write("chat message: hi");
+                    chatMessage.EndMessage();
+                    Game.Instance.Broadcast(chatMessage);
+                    Console.WriteLine($"> test chat sent");
+                    break;
                 case "bc":
                 case "broadcast":
                     var msg = MessageWriter.Get(SendOption.Reliable);

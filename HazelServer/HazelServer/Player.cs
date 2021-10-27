@@ -63,7 +63,7 @@ namespace HazelServer
                             break;
                         case MessageTags.PlayerChat:
                             //TODO implement player chat (send message to all other players?)
-                            Console.WriteLine($"{DateTime.UtcNow} [INBOUND] chat message from player \"{name}\": {msg.ReadString()}");
+                            BroadcastPlayerChat(msg);
                             break;
                         case MessageTags.PlayerInput:
                             StoreInput(msg);
@@ -139,7 +139,7 @@ namespace HazelServer
             while (i < toProcessCount)
             {
                 var playerInputStruct = _playerInputs.Dequeue();
-                Position = Movement.ApplyInput(Position, playerInputStruct.inputs, playerInputStruct.dt);
+                Position = Movement.ApplyInput(Position, playerInputStruct.inputs, playerInputStruct.deltaTime);
                 
                 //Console.WriteLine($"{DateTime.UtcNow} [TRACE] processing input seq {playerInputStruct.sequenceNumber}");
                 
@@ -148,6 +148,21 @@ namespace HazelServer
                 }
                 i++;
             }
+        }
+
+        private void BroadcastPlayerChat(MessageReader reader)
+        {
+            string chatMessage = reader.ReadString();
+            
+            var msg = MessageWriter.Get(SendOption.Reliable);
+            msg.StartMessage((byte)MessageTags.PlayerChat);
+            msg.WritePacked(id);
+            msg.Write(name);
+            msg.Write(chatMessage);
+            msg.EndMessage();
+            
+            //TODO update this to a "broadcast to others" method
+            Game.Instance.Broadcast(msg);
         }
         
         //TODO how do we genericize this?  we want to send errors with strings, but sometimes just tags.  we don't 

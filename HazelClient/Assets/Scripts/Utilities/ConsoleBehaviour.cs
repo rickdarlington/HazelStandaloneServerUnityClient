@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
+using HazelServer;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 
 namespace UnityClient.Utilities
 {
@@ -11,7 +14,14 @@ namespace UnityClient.Utilities
 
         [Header("UI")] 
         [SerializeField] private TMP_InputField _consoleInputField = null;
+        [SerializeField] private TMP_Text _consoleText = null;
 
+        // Unity gets very grumpy if you start messing with GameObjects on threads
+        // other than the main one. So while sending/receiving messages can be multithreaded,
+        // we need a queue to hold events until a Update/FixedUpdate method can handle them.
+        public readonly Queue<ChatMessageStruct> messageQueue = new Queue<ChatMessageStruct>();
+        
+        public static ConsoleBehaviour Instance => instance;
         private static ConsoleBehaviour instance;
 
         private void Awake()
@@ -26,7 +36,20 @@ namespace UnityClient.Utilities
                 Destroy(gameObject);
             }
         }
-        
+
+        private void Update()
+        {
+            //grab messages from queue and display
+            int num = messageQueue.Count;
+
+            for (int i = 0; i < num; i++)
+            {
+                ChatMessageStruct msg = messageQueue.Dequeue();
+                Debug.Log($"[TRACE] incoming chat message: {msg.message}");
+                _consoleText.text += $"[{msg.playerName}] {msg.message}\n";
+            }
+        }
+
         //called by input actions (new input system)
         public void Toggle(InputAction.CallbackContext context)
         {
@@ -85,7 +108,12 @@ namespace UnityClient.Utilities
 
         private void PlayerChat(string text)
         {
-            MessageHandler.Instance.PlayerChat(text);
+            MessageHandler.Instance.SendPlayerChat(text);
+        }
+
+        public void ReceiveChat(uint playerId, string playerName, string text)
+        {
+            messageQueue.Enqueue(new ChatMessageStruct(playerId, playerName, text));
         }
     }
 }

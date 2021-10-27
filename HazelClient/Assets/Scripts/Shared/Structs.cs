@@ -6,14 +6,14 @@ namespace HazelServer
     public readonly struct PlayerInputStruct
     {
         public readonly uint sequenceNumber;
-        public readonly float dt;
+        public readonly float deltaTime;
         public readonly bool[] inputs;
 
-        public PlayerInputStruct(uint sequence, bool[] ins, float deltaTime = 0.01666667f)
+        public PlayerInputStruct(uint sequenceNumber, bool[] inputs, float deltaTime = 0.01666667f)
         {
-            sequenceNumber = sequence;
-            dt = deltaTime;
-            inputs = ins;
+            this.sequenceNumber = sequenceNumber;
+            this.inputs = inputs;
+            this.deltaTime = deltaTime;
         }
     }
     
@@ -23,11 +23,11 @@ namespace HazelServer
         public readonly uint serverTick;
         public readonly List<PositionStruct> positions;
                 
-        public GameUpdateStruct(uint count, uint tick, List<PositionStruct> pos)
+        public GameUpdateStruct(uint updateCount, uint serverTick, List<PositionStruct> positions)
         {
-            updateCount = count;
-            serverTick = tick;
-            positions = pos;
+            this.updateCount = updateCount;
+            this.serverTick = serverTick;
+            this.positions = positions;
         }
     }
 
@@ -52,6 +52,20 @@ namespace HazelServer
             Y = y;
             lookDirection = l;
             renderTime = DateTime.MinValue.Ticks/TimeSpan.TicksPerMillisecond;
+        }
+    }
+
+    public class ChatMessageStruct
+    {
+        public readonly uint playerId;
+        public readonly string playerName;
+        public readonly string message;
+
+        public ChatMessageStruct(uint playerId, string playerName, string message)
+        {
+            this.playerId = playerId;
+            this.playerName = playerName;
+            this.message = message;
         }
     }
 }

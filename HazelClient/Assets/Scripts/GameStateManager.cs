@@ -124,7 +124,7 @@ namespace UnityClient
 
             foreach (PlayerInputStruct input in SentInputs)
             {
-                predictedPosition = Movement.ApplyInput(predictedPosition, input.inputs, input.dt);
+                predictedPosition = Movement.ApplyInput(predictedPosition, input.inputs, input.deltaTime);
             }
             
             //Debug.Log($"server: {pos.X}, {pos.Y} | predicted: {predictedPosition.X}, {predictedPosition.Y} | current: {myPlayer.transform.position.x}, {myPlayer.transform.position.y}");

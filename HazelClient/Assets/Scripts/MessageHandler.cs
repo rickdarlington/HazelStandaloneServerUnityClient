@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Hazel;
 using HazelServer;
+using UnityClient.Utilities;
 using UnityEngine;
 
 namespace UnityClient
@@ -61,6 +62,9 @@ namespace UnityClient
                         case MessageTags.ServerMessage:
                             if (_networkManager.LoggedIn) HandleServerMessage(msg);
                             break;
+                        case MessageTags.PlayerChat:
+                            if (_networkManager.LoggedIn) HandlePlayerChatMessage(msg);
+                            break;
                         case MessageTags.GameData:
                             if (_networkManager.LoggedIn) ReceiveGameData(msg);
                             break;
@@ -106,7 +110,13 @@ namespace UnityClient
 
         private void HandleServerMessage(MessageReader msg)
         {
-            Debug.Log($"Received Server Message: {msg.ReadString()}");
+            //server messages don't contain metadata (server has no id, playername, etc)
+            ConsoleBehaviour.Instance.ReceiveChat(0, "SERVER", msg.ReadString());
+        }
+
+        private void HandlePlayerChatMessage(MessageReader msg)
+        {
+            ConsoleBehaviour.Instance.ReceiveChat(msg.ReadPackedUInt32(), msg.ReadString(), msg.ReadString());
         }
 
         private void ReceiveGameData(MessageReader msg)
@@ -149,7 +159,7 @@ namespace UnityClient
             Send(SendOption.Reliable, MessageTags.ConsoleMessage, message);
         }
 
-        public void PlayerChat(string message)
+        public void SendPlayerChat(string message)
         {
             if (!_networkManager.IsConnected())
             {
@@ -205,7 +215,7 @@ namespace UnityClient
             {
                 //TODO we are giving the player some authority by letting them specify dt, needs server validation
                 msg.WritePacked(ins.sequenceNumber);
-                msg.Write(ins.dt);
+                msg.Write(ins.deltaTime);
                 msg.Write(ins.inputs[0]);
                 msg.Write(ins.inputs[1]);
                 msg.Write(ins.inputs[2]);
