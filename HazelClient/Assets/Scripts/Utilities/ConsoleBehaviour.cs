@@ -47,7 +47,6 @@ namespace UnityClient.Utilities
             for (int i = 0; i < num; i++)
             {
                 ChatMessageStruct msg = messageQueue.Dequeue();
-                Debug.Log($"[TRACE] incoming chat message: {msg.message}");
                 _consoleText.text += $"\n[{msg.playerName}] {msg.message}";
             }
 
@@ -60,6 +59,7 @@ namespace UnityClient.Utilities
         private IEnumerator ScrollToBottom()
         {
             //TODO if someone manually scrolls away, probably don't do this (it'll be annoying)
+            //TODO implement a scroll lock/unlock
             yield return new WaitForEndOfFrame();
             _scrollRect.normalizedPosition = new Vector2(0, 0);
         }
